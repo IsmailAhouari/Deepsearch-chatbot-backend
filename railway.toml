@@ -1,0 +1,25 @@
+# Railway deployment configuration for DeepSearch Backend
+# Docs: https://docs.railway.app/reference/config-as-code
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Required environment variables (set these in Railway dashboard):
+# DATABASE_URL        — automatically provided by Railway PostgreSQL service
+# ADMIN_API_KEY       — generate: python -c "import secrets; print(secrets.token_hex(32))"
+# ENVIRONMENT         — production | staging | development
+# CORS_ORIGINS        — comma-separated frontend origins
+# CRM_ADAPTER_CLASS   — (optional) dotted path to CRM adapter
+# CRM_API_KEY         — (optional) CRM provider API key
+# CALENDLY_API_KEY    — (optional) Calendly Personal Access Token
+# CALENDLY_EVENT_URL  — (optional) e.g. https://calendly.com/yourname/demo
+# RESEND_API_KEY      — (optional) Resend API key for transactional emails
+# LOG_LEVEL           — INFO (default) | DEBUG | WARNING | ERROR

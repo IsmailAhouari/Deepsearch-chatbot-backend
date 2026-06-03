@@ -1,0 +1,113 @@
+"""Application configuration loaded from environment variables.
+
+Uses pydantic-settings for validated, fail-fast loading.
+Any missing required variable raises ValueError at startup — no silent defaults.
+
+Authentication: none. The only client is the DeepSearch frontend (HTTPS + CORS).
+"""
+from __future__ import annotations
+
+from functools import lru_cache
+from typing import Literal
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """All application configuration sourced from environment variables.
+
+    Required fields have no default — startup fails immediately with a clear
+    error message if any variable is absent or invalid.
+    """
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+        # Treat empty-string env vars as absent so field defaults apply.
+        # This prevents SettingsError when CORS_ORIGINS="" or similar.
+        env_ignore_empty=True,
+    )
+
+    # ── Database ──────────────────────────────────────────────────────────────
+    database_url: str
+    """asyncpg connection string, e.g. postgresql+asyncpg://user:pass@host/db"""
+
+    # ── CRM ───────────────────────────────────────────────────────────────────
+    crm_adapter_class: str = "src.integrations.crm.null_adapter.NullAdapter"
+    """Dotted import path of the CRM adapter class to load at startup."""
+
+    crm_api_key: str | None = None
+    """API key for the configured CRM provider (if applicable)."""
+
+    # ── Calendly ─────────────────────────────────────────────────────────────
+    calendly_api_key: str | None = None
+    """Calendly Personal Access Token for booking link generation."""
+
+    calendly_event_url: str | None = None
+    """Calendly event type URL (e.g. https://calendly.com/yourname/demo)."""
+
+    # ── Email (Resend) ────────────────────────────────────────────────────────
+    resend_api_key: str | None = None
+    """Resend API key for transactional emails (optional)."""
+
+    # ── Application ───────────────────────────────────────────────────────────
+    environment: Literal["development", "staging", "production"] = "development"
+    """Runtime environment — controls log format and debug behaviour."""
+
+    cors_origins: list[str] = ["https://deepsearchch-chatbot-frontend.vercel.app"]
+    """Comma-separated list of allowed CORS origins (frontend widget URLs)."""
+
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    """Minimum log level emitted by structlog."""
+
+    port: int = 8000
+    """Port the uvicorn server listens on (Railway injects this automatically)."""
+
+    # ── Derived helpers ───────────────────────────────────────────────────────
+    @property
+    def is_production(self) -> bool:
+        return self.environment == "production"
+
+    @property
+    def is_development(self) -> bool:
+        return self.environment == "development"
+
+    # ── Validators ────────────────────────────────────────────────────────────
+    @field_validator("database_url")
+    @classmethod
+    def database_url_must_be_asyncpg(cls, v: str) -> str:
+        if not v.startswith("postgresql+asyncpg://"):
+            raise ValueError(
+                "DATABASE_URL must use the asyncpg driver: "
+                "postgresql+asyncpg://user:pass@host:port/db"
+            )
+        return v
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v: str | list[str]) -> list[str]:
+        """Accept a comma-separated string or an already-decoded list.
+
+        NOTE: pydantic-settings v2 calls json.loads() on list[str] env fields
+        before this validator runs.  Set CORS_ORIGINS as a JSON array in .env:
+            CORS_ORIGINS=["https://deepsearchch-chatbot-frontend.vercel.app"]
+        A bare comma-separated value is NOT valid JSON and will raise
+        SettingsError before this validator is reached.
+        """
+        if isinstance(v, str):
+            # Fallback for programmatic use — not triggered from env.
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    """Return the cached application settings.
+
+    Called once at startup; subsequent calls return the cached instance.
+    The cache can be cleared in tests via get_settings.cache_clear().
+    """
+    return Settings()
