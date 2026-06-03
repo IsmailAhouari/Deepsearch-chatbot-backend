@@ -30,12 +30,25 @@ def _get_engine() -> Any:
         settings = get_settings()
         _engine = create_async_engine(
             settings.database_url,
-            # asyncpg pool settings — reasonable defaults for Railway (512 MB RAM)
-            pool_size=5,
-            max_overflow=10,
-            pool_pre_ping=True,  # recycle stale connections
-            pool_recycle=1800,   # recycle connections older than 30 min
+            # Pool tuned for Railway's proxy, which silently drops connections
+            # idle for ~5 minutes. pool_recycle must stay below that threshold.
+            pool_size=3,
+            max_overflow=7,
+            pool_pre_ping=True,   # discard stale connections before use
+            pool_recycle=240,     # recycle after 4 min — under Railway's 5-min proxy timeout
+            pool_timeout=30,      # raise after 30 s if no connection is available
             echo=settings.is_development,
+            connect_args={
+                "command_timeout": 60,
+                "server_settings": {
+                    "application_name": "deepsearch-backend",
+                    # Instruct Postgres to send TCP keepalives so the Railway
+                    # proxy does not silently drop idle-but-alive connections.
+                    "tcp_keepalives_idle": "60",
+                    "tcp_keepalives_interval": "10",
+                    "tcp_keepalives_count": "5",
+                },
+            },
         )
         _session_factory = async_sessionmaker(
             _engine,
