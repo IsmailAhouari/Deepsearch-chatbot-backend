@@ -76,13 +76,20 @@ class Settings(BaseSettings):
         return self.environment == "development"
 
     # ── Validators ────────────────────────────────────────────────────────────
-    @field_validator("database_url")
+    @field_validator("database_url", mode="before")
     @classmethod
     def database_url_must_be_asyncpg(cls, v: str) -> str:
-        if not v.startswith("postgresql+asyncpg://"):
+        if not isinstance(v, str):
+            return v
+        # Support standard postgres:// or postgresql:// and automatically prepend +asyncpg
+        if v.startswith("postgres://"):
+            v = v.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif v.startswith("postgresql://"):
+            v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        elif not v.startswith("postgresql+asyncpg://"):
             raise ValueError(
-                "DATABASE_URL must use the asyncpg driver: "
-                "postgresql+asyncpg://user:pass@host:port/db"
+                "DATABASE_URL must be a valid PostgreSQL connection string "
+                "(e.g., postgresql:// or postgresql+asyncpg://)"
             )
         return v
 
