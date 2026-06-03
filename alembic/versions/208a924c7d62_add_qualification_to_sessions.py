@@ -30,7 +30,7 @@ def upgrade() -> None:
                existing_type=sa.UUID(),
                comment='Populated after lead creation',
                existing_nullable=True)
-    op.drop_index(op.f('ix_analytics_funnel_events_type_time'), table_name='funnel_events')
+    op.execute("DROP INDEX IF EXISTS ix_analytics_funnel_events_type_time")
     op.alter_column('leads', 'session_id',
                existing_type=sa.UUID(),
                comment='One lead per session',
@@ -75,8 +75,8 @@ def upgrade() -> None:
                existing_type=postgresql.JSONB(astext_type=sa.Text()),
                comment='Verbatim qualification payload as submitted. Immutable.',
                existing_nullable=True)
-    op.drop_index(op.f('ix_analytics_leads_locale_created'), table_name='leads')
-    op.drop_index(op.f('ix_analytics_leads_qualification'), table_name='leads')
+    op.execute("DROP INDEX IF EXISTS ix_analytics_leads_locale_created")
+    op.execute("DROP INDEX IF EXISTS ix_analytics_leads_qualification")
     op.add_column('sessions', sa.Column('qualification', postgresql.JSONB(astext_type=sa.Text()), nullable=True, comment='Verbatim qualification snapshot copied from the lead request'))
     op.alter_column('sessions', 'locale',
                existing_type=sa.VARCHAR(length=10),
