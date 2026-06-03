@@ -128,14 +128,14 @@ def create_app() -> FastAPI:
     async def _request_validation_error_handler(
         request: Request, exc: RequestValidationError
     ) -> JSONResponse:
-        """Handle FastAPI request-body validation errors with RFC 7807 format.
-
-        FastAPI raises RequestValidationError (not pydantic's ValidationError) when
-        the incoming request body fails JSON schema / Pydantic model validation.
-        Without this handler, FastAPI returns its own {"detail": [...]} format
-        instead of the RFC 7807 ProblemDetail format used by the rest of the API.
-        """
+        """Handle FastAPI request-body validation errors with RFC 7807 format."""
         errors = pydantic_errors_to_field_errors(exc.errors())
+        logger.warning(
+            "request_validation_failed",
+            path=str(request.url.path),
+            errors=[{"field": e.field, "message": e.message} for e in errors],
+            raw_errors=exc.errors(),
+        )
         detail = problem_422(
             detail="Request validation failed.",
             errors=errors,
