@@ -6,8 +6,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-preDeployCommand = "alembic upgrade head"
-startCommand = "uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8000} --log-level info"
+preDeployCommand = "sh -c 'alembic upgrade head'"
+startCommand = "sh -c 'uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8000} --log-level info'"
 healthcheckPath = "/health"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
