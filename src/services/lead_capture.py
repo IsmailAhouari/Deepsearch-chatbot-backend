@@ -67,11 +67,26 @@ async def capture_lead(
     # 1. Create or update session ─────────────────────────────────────────────
     meta = request.metadata
 
-    # Snapshot: all captured fields (canonical + extra), nulls excluded so the
-    # stored dict contains only what the user actually provided.
+    # Build the qualification snapshot with a fixed canonical schema enriched by
+    # flow-specific captures.
+    #
+    # The four canonical fields are ALWAYS present (null when not captured) so
+    # every session row has a consistent structure regardless of which flow the
+    # user took.  Extra fields (source_flow, func_role, need_type, request_nature,
+    # entry_screen, org, timing, …) are merged in only when non-null so the dict
+    # stays clean and reflects what was actually collected on that specific path.
     qualification_snapshot = {
-        k: v for k, v in
-        request.qualification.model_dump(mode="python", exclude_none=True).items()
+        # ── Fixed canonical keys ──────────────────────────────────────────────
+        "target":    request.qualification.target,
+        "obiettivo": request.qualification.obiettivo,
+        "geografia": request.qualification.geografia,
+        "role":      request.qualification.role,
+        # ── Flow-specific enrichments (non-null extras only) ──────────────────
+        **{
+            k: v
+            for k, v in (request.qualification.model_extra or {}).items()
+            if v is not None
+        },
     }
 
     # Ordered steps list: [{screen, fields, step}] serialised to plain dicts.
