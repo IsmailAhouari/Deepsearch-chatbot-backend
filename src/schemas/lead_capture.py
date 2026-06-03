@@ -239,6 +239,16 @@ class EventIn(BaseModel):
 
 # ── Session Metadata ──────────────────────────────────────────────────────────
 
+class QualificationStep(BaseModel):
+    """A single qualification capture recorded during the user's journey."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    screen: str = Field(..., max_length=100, description="Screen ID where the capture fired")
+    fields: dict[str, Any] = Field(..., description="Qualification fields captured at this step")
+    step: int = Field(..., ge=0, description="Zero-based index in the capture sequence")
+
+
 class MetadataIn(BaseModel):
     """Optional session metadata from the frontend."""
 
@@ -249,6 +259,10 @@ class MetadataIn(BaseModel):
     source_flow: str | None = Field(default=None, max_length=50)
     visited_screens: list[str] | None = Field(default=None)
     intent_signals: dict[str, int] | None = Field(default=None)
+    qualification_steps: list[QualificationStep] | None = Field(
+        default=None,
+        description="Ordered qualification captures from the frontend journey",
+    )
 
 
 # ── Request & Response ────────────────────────────────────────────────────────

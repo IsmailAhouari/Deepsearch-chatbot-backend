@@ -71,7 +71,13 @@ class Session(UUIDMixin, TimestampMixin, Base):
     qualification: Mapped[dict | None] = mapped_column(
         JSONB,
         nullable=True,
-        comment="Verbatim qualification snapshot copied from the lead request",
+        comment="Flat qualification snapshot (canonical + extra fields, nulls excluded)",
+    )
+
+    qualification_steps: Mapped[list | None] = mapped_column(
+        JSONB,
+        nullable=True,
+        comment="Ordered list of qualification captures: [{screen, fields, step}]",
     )
 
     # ── Relationships ─────────────────────────────────────────────────────────

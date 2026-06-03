@@ -66,15 +66,27 @@ async def capture_lead(
 
     # 1. Create or update session ─────────────────────────────────────────────
     meta = request.metadata
-    qualification_snapshot = request.qualification.model_dump(mode="python", exclude_none=False)
+
+    # Snapshot: all captured fields (canonical + extra), nulls excluded so the
+    # stored dict contains only what the user actually provided.
+    qualification_snapshot = {
+        k: v for k, v in
+        request.qualification.model_dump(mode="python", exclude_none=True).items()
+    }
+
+    # Ordered steps list: [{screen, fields, step}] serialised to plain dicts.
+    qualification_steps = (
+        [s.model_dump() for s in meta.qualification_steps]
+        if meta and meta.qualification_steps
+        else None
+    )
 
     if request.session_id is not None:
         # Use the pre-created session from POST /api/v1/sessions — update it with
-        # engagement data collected during exploration.
+        # engagement data and full qualification collected during exploration.
         result = await db.execute(select(Session).where(Session.id == request.session_id))
         session = result.scalar_one_or_none()
         if session is None:
-            # Session not found (expired or invalid) — create a fresh one.
             logger.warning("lead_capture_session_not_found", session_id=str(request.session_id))
             session = Session(locale=request.locale)
             db.add(session)
@@ -86,6 +98,7 @@ async def capture_lead(
             session.intent_signals = meta.intent_signals if meta else session.intent_signals
             session.session_duration_seconds = meta.session_duration_seconds if meta else session.session_duration_seconds
             session.qualification = qualification_snapshot
+            session.qualification_steps = qualification_steps
     else:
         session = Session(
             locale=request.locale,
@@ -95,6 +108,7 @@ async def capture_lead(
             intent_signals=meta.intent_signals if meta else None,
             session_duration_seconds=meta.session_duration_seconds if meta else None,
             qualification=qualification_snapshot,
+            qualification_steps=qualification_steps,
         )
         db.add(session)
 
