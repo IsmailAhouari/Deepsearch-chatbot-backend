@@ -55,6 +55,11 @@ async def capture_lead_endpoint(
     try:
         response = await capture_lead(db=db, request=body)
 
+        # Commit the session NOW so the CRM sync background task always finds
+        # the lead in the database.  FastAPI's BackgroundTasks can fire before
+        # the get_db dependency commits, causing a race condition.
+        await db.commit()
+
         # Optional CRM sync in background — never blocks the response
         from src.integrations.tasks import sync_lead_to_crm
         background_tasks.add_task(sync_lead_to_crm, response.lead_id)
