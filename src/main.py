@@ -158,6 +158,9 @@ def create_app() -> FastAPI:
     from src.api.health import router as health_router
     app.include_router(health_router)
 
+    from src.api.v1.public.sessions import router as sessions_router
+    app.include_router(sessions_router, prefix="/api/v1")
+
     from src.api.v1.public.leads import router as leads_router
     app.include_router(leads_router, prefix="/api/v1")
 

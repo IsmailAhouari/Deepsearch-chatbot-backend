@@ -283,6 +283,14 @@ class LeadCaptureRequest(BaseModel):
         max_length=10,
         description="BCP-47 locale tag (en / it / ar)",
     )
+    session_id: uuid.UUID | None = Field(
+        default=None,
+        description=(
+            "Optional session_id returned by POST /api/v1/sessions. "
+            "When provided, the lead is linked to the pre-created session "
+            "instead of creating a new one."
+        ),
+    )
     idempotency_key: uuid.UUID | None = Field(
         default=None,
         description=(

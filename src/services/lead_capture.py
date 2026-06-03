@@ -64,19 +64,41 @@ async def capture_lead(
                 created_at=existing_lead.created_at,
             )
 
-    # 1. Create session ────────────────────────────────────────────────────────
+    # 1. Create or update session ─────────────────────────────────────────────
     meta = request.metadata
-    session = Session(
-        locale=request.locale,
-        source_flow=meta.source_flow if meta else None,
-        engagement_depth=(meta.engagement_depth or 0) if meta else 0,
-        visited_screens=meta.visited_screens if meta else None,
-        intent_signals=meta.intent_signals if meta else None,
-        session_duration_seconds=meta.session_duration_seconds if meta else None,
-        qualification=request.qualification.model_dump(mode="python", exclude_none=False),
-    )
-    db.add(session)
-    await db.flush()  # get server-assigned UUID
+    qualification_snapshot = request.qualification.model_dump(mode="python", exclude_none=False)
+
+    if request.session_id is not None:
+        # Use the pre-created session from POST /api/v1/sessions — update it with
+        # engagement data collected during exploration.
+        result = await db.execute(select(Session).where(Session.id == request.session_id))
+        session = result.scalar_one_or_none()
+        if session is None:
+            # Session not found (expired or invalid) — create a fresh one.
+            logger.warning("lead_capture_session_not_found", session_id=str(request.session_id))
+            session = Session(locale=request.locale)
+            db.add(session)
+        else:
+            session.locale = request.locale
+            session.source_flow = meta.source_flow if meta else session.source_flow
+            session.engagement_depth = (meta.engagement_depth or 0) if meta else session.engagement_depth
+            session.visited_screens = meta.visited_screens if meta else session.visited_screens
+            session.intent_signals = meta.intent_signals if meta else session.intent_signals
+            session.session_duration_seconds = meta.session_duration_seconds if meta else session.session_duration_seconds
+            session.qualification = qualification_snapshot
+    else:
+        session = Session(
+            locale=request.locale,
+            source_flow=meta.source_flow if meta else None,
+            engagement_depth=(meta.engagement_depth or 0) if meta else 0,
+            visited_screens=meta.visited_screens if meta else None,
+            intent_signals=meta.intent_signals if meta else None,
+            session_duration_seconds=meta.session_duration_seconds if meta else None,
+            qualification=qualification_snapshot,
+        )
+        db.add(session)
+
+    await db.flush()  # get server-assigned UUID (or confirm existing)
 
     # Update request context for logging (after session ID is available)
     RequestContext.set(
