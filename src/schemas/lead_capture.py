@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import (
     BaseModel,
@@ -280,6 +280,10 @@ class LeadCaptureRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     contact: ContactIn
+    request_type: Literal["demo", "contact", "generic_request"] = Field(
+        ...,
+        description="Nature of the engagement requested: demo booking, contact inquiry, or custom request.",
+    )
     qualification: QualificationIn = Field(default_factory=QualificationIn)
     events: list[EventIn] = Field(default_factory=list)
     metadata: MetadataIn = Field(default_factory=MetadataIn)

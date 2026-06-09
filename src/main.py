@@ -62,6 +62,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         calendly_enabled=bool(settings.calendly_api_key),
     )
 
+    # Warn about optional email config absent in non-production environments.
+    # In production these vars are required (Settings raises at instantiation).
+    if not settings.is_production:
+        _warn_missing_optional = [
+            ("RESEND_API_KEY", settings.resend_api_key),
+            ("CALENDLY_EVENT_URL", settings.calendly_event_url),
+            ("INSIDE_NOTIFICATION_EMAIL", settings.inside_notification_email),
+        ]
+        for var_name, value in _warn_missing_optional:
+            if not value:
+                logger.warning(
+                    "optional_config_absent",
+                    variable=var_name,
+                    effect="email notifications disabled or degraded",
+                )
+
     # Verify DB is reachable — fail loudly at startup rather than silently
     # later on the first real request.
     try:

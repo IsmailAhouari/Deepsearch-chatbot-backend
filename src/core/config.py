@@ -10,7 +10,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -53,6 +53,12 @@ class Settings(BaseSettings):
     resend_api_key: str | None = None
     """Resend API key for transactional emails (optional)."""
 
+    inside_notification_email: str | None = None
+    """Recipient address for Operator Notification emails (Commercial Team inbox)."""
+
+    email_from_address: str = "DeepSearch <notifications@deepsearch.ch>"
+    """Sender address for all outbound emails. Must be a Resend-verified domain."""
+
     # ── Application ───────────────────────────────────────────────────────────
     environment: Literal["development", "staging", "production"] = "development"
     """Runtime environment — controls log format and debug behaviour."""
@@ -76,6 +82,33 @@ class Settings(BaseSettings):
         return self.environment == "development"
 
     # ── Validators ────────────────────────────────────────────────────────────
+    @model_validator(mode="after")
+    def require_email_config_in_production(self) -> "Settings":
+        """Fail fast in production when any email integration var is absent.
+
+        In development/staging the vars remain optional — the email service
+        degrades gracefully with warning logs.
+        """
+        if self.environment != "production":
+            return self
+
+        missing = [
+            name
+            for name, value in [
+                ("RESEND_API_KEY", self.resend_api_key),
+                ("CALENDLY_EVENT_URL", self.calendly_event_url),
+                ("INSIDE_NOTIFICATION_EMAIL", self.inside_notification_email),
+            ]
+            if not value
+        ]
+
+        if missing:
+            raise ValueError(
+                f"Required in production but not configured: {', '.join(missing)}. "
+                "Set these environment variables before deploying."
+            )
+        return self
+
     @field_validator("database_url", mode="before")
     @classmethod
     def database_url_must_be_asyncpg(cls, v: str) -> str:

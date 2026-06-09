@@ -60,9 +60,10 @@ async def capture_lead_endpoint(
         # the get_db dependency commits, causing a race condition.
         await db.commit()
 
-        # Optional CRM sync in background — never blocks the response
-        from src.integrations.tasks import sync_lead_to_crm
+        # Post-capture background tasks — never block the response
+        from src.integrations.tasks import send_notification_emails, sync_lead_to_crm
         background_tasks.add_task(sync_lead_to_crm, response.lead_id)
+        background_tasks.add_task(send_notification_emails, response.lead_id, body.request_type)
 
         return response
 

@@ -28,6 +28,7 @@ def _payload(i: int) -> dict:
             "azienda": f"TestCo {i}",
             "email": f"perf.test.{i}.{uuid.uuid4().hex[:6]}@testco.it",
         },
+        "request_type": "demo",
         "qualification": {
             "target": "azienda",
             "obiettivo": "due_diligence",

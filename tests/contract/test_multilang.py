@@ -70,6 +70,7 @@ def _payload(locale: str, **overrides) -> dict:
             "azienda": "TestCo",
             "email": f"test.{uuid.uuid4().hex[:6]}@testco.com",
         },
+        "request_type": "demo",
         "qualification": {"target": "azienda"},
         "events": [],
         "locale": locale,

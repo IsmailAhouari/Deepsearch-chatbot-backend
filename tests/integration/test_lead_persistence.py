@@ -37,6 +37,7 @@ def _payload(**overrides) -> dict:
             "paese": "Italy",
             "note": "Integration test note.",
         },
+        "request_type": "demo",
         "qualification": {
             "target": "azienda",
             "obiettivo": "due_diligence",

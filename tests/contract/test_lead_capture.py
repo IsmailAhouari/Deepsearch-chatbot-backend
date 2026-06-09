@@ -30,6 +30,7 @@ def _valid_payload(**overrides) -> dict:
             "paese": "Italy",
             "note": "Interested in AML screening.",
         },
+        "request_type": "demo",
         "qualification": {
             "target": "azienda",
             "obiettivo": "aml",
@@ -230,6 +231,60 @@ async def test_invalid_email_returns_422(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
+async def test_missing_request_type_returns_422(client: AsyncClient) -> None:
+    """Missing required `request_type` returns 422 with field-level error."""
+    payload = _valid_payload()
+    payload.pop("request_type", None)  # ensure absent regardless of helper defaults
+    response = await client.post("/api/v1/leads/capture", json=payload)
+    assert response.status_code == 422, response.text
+
+    data = response.json()
+    errors = data.get("errors", [])
+    field_names = [e["field"] for e in errors]
+    assert any("request_type" in f for f in field_names), (
+        f"Expected 'request_type' in errors, got: {field_names}"
+    )
+
+
+@pytest.mark.asyncio
+async def test_invalid_request_type_returns_422(client: AsyncClient) -> None:
+    """An unrecognised `request_type` value returns 422."""
+    payload = _valid_payload(request_type="meeting")
+    response = await client.post("/api/v1/leads/capture", json=payload)
+    assert response.status_code == 422, response.text
+
+    data = response.json()
+    errors = data.get("errors", [])
+    field_names = [e["field"] for e in errors]
+    assert any("request_type" in f for f in field_names), (
+        f"Expected 'request_type' in errors, got: {field_names}"
+    )
+
+
+@pytest.mark.asyncio
+async def test_null_request_type_returns_422(client: AsyncClient) -> None:
+    """Explicit null `request_type` returns 422 (None is not a valid Request Type)."""
+    payload = _valid_payload(request_type=None)
+    response = await client.post("/api/v1/leads/capture", json=payload)
+    assert response.status_code == 422, response.text
+
+
+@pytest.mark.parametrize("request_type", ["demo", "contact", "generic_request"])
+@pytest.mark.asyncio
+async def test_all_valid_request_types_accepted(
+    client: AsyncClient, request_type: str
+) -> None:
+    """All three valid Request Type values are accepted by the schema."""
+    payload = _valid_payload(request_type=request_type)
+    # Use client (no DB) — we only need schema validation to pass, not persistence
+    response = await client.post("/api/v1/leads/capture", json=payload)
+    # 503 (DB unreachable) is acceptable here; 422 is not
+    assert response.status_code != 422, (
+        f"request_type='{request_type}' was rejected: {response.text}"
+    )
+
+
+@pytest.mark.asyncio
 async def test_missing_contact_object_returns_422(client: AsyncClient) -> None:
     """Missing entire `contact` object returns 422."""
     payload = _valid_payload()
@@ -279,6 +334,7 @@ async def test_capture_accepts_note_at_root_level(db_client: AsyncClient) -> Non
             "azienda": "TestCo",
             "email": "test@testco.it",
         },
+        "request_type": "contact",
         "qualification": {
             "subject_type": "azienda",
             "motivation": "due_diligence",
@@ -308,6 +364,7 @@ async def test_capture_accepts_exact_demoform_payload_shape(db_client: AsyncClie
             "ruolo": "Compliance Officer",
             "paese": "Italia",
         },
+        "request_type": "demo",
         "qualification": {
             "subject_type": "azienda",
             "motivation": "due diligence",
