@@ -208,6 +208,26 @@ async def test_unknown_qual_field_stored_in_extra_qualification(client, db_sessi
     assert lead.extra_qualification.get("need_type") == "enhanced_due_diligence"
 
 
+@pytest.mark.parametrize("request_type", ["demo", "contact", "generic_request"])
+@pytest.mark.asyncio
+async def test_request_type_stored_in_extra_qualification(
+    client, db_session, request_type
+) -> None:
+    """The submitted request_type is persisted in the Lead's extra_qualification JSONB."""
+    payload = _payload(request_type=request_type)
+    payload["idempotency_key"] = str(uuid.uuid4())
+
+    response = await client.post("/api/v1/leads/capture", json=payload)
+    assert response.status_code == 200, response.text
+
+    lead_id = uuid.UUID(response.json()["lead_id"])
+
+    from src.models.lead import Lead
+    lead = await db_session.get(Lead, lead_id)
+    assert lead.extra_qualification is not None
+    assert lead.extra_qualification.get("request_type") == request_type
+
+
 @pytest.mark.asyncio
 async def test_duplicate_idempotency_key_returns_single_lead(client, db_session) -> None:
     """Duplicate submission produces exactly one Lead row in DB."""

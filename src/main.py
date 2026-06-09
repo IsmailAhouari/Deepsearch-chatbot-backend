@@ -69,6 +69,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             ("RESEND_API_KEY", settings.resend_api_key),
             ("CALENDLY_EVENT_URL", settings.calendly_event_url),
             ("INSIDE_NOTIFICATION_EMAIL", settings.inside_notification_email),
+            ("EMAIL_FROM_ADDRESS", settings.email_from_address),
         ]
         for var_name, value in _warn_missing_optional:
             if not value:

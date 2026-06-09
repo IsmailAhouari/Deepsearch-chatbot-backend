@@ -56,8 +56,9 @@ class Settings(BaseSettings):
     inside_notification_email: str | None = None
     """Recipient address for Operator Notification emails (Commercial Team inbox)."""
 
-    email_from_address: str = "DeepSearch <notifications@deepsearch.ch>"
-    """Sender address for all outbound emails. Must be a Resend-verified domain."""
+    email_from_address: str | None = None
+    """Sender address for all outbound emails. Required in production; must be a
+    Resend-verified domain. No default ships — production startup fails if unset."""
 
     # ── Application ───────────────────────────────────────────────────────────
     environment: Literal["development", "staging", "production"] = "development"
@@ -98,6 +99,7 @@ class Settings(BaseSettings):
                 ("RESEND_API_KEY", self.resend_api_key),
                 ("CALENDLY_EVENT_URL", self.calendly_event_url),
                 ("INSIDE_NOTIFICATION_EMAIL", self.inside_notification_email),
+                ("EMAIL_FROM_ADDRESS", self.email_from_address),
             ]
             if not value
         ]

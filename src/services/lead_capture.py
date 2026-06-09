@@ -27,6 +27,18 @@ from src.schemas.lead_capture import LeadCaptureRequest, LeadCaptureResponse
 logger = get_logger(__name__)
 
 
+def build_extra_qualification(request: LeadCaptureRequest) -> dict | None:
+    """Assemble the Lead's qualification overflow (extra_qualification JSONB).
+
+    Combines the non-canonical qualification fields with the top-level
+    `request_type`, so the kind of engagement requested is reconstructable later
+    (e.g. for a re-send) without a dedicated column. Returns None when empty.
+    """
+    extra = request.qualification.get_extra_qualification()
+    extra = {**extra, "request_type": request.request_type}
+    return extra or None
+
+
 async def capture_lead(
     db: AsyncSession,
     request: LeadCaptureRequest,
@@ -139,7 +151,7 @@ async def capture_lead(
 
     # 2. Create Lead ──────────────────────────────────────────────────────────
     contact = request.contact
-    extra_qual = request.qualification.get_extra_qualification()
+    extra_qual = build_extra_qualification(request)
     raw_payload = request.qualification.model_dump(mode="python", exclude_none=False)
 
     lead_values = {
