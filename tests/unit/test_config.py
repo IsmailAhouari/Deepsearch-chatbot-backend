@@ -51,7 +51,7 @@ class TestProductionEmailStartupValidation:
         monkeypatch.setenv("DATABASE_URL", self._DB)
         monkeypatch.setenv("ENVIRONMENT", "production")
         monkeypatch.setenv("RESEND_API_KEY", "re_live_key")
-        monkeypatch.setenv("CALENDLY_EVENT_URL", "https://calendly.com/deepsearch/demo")
+        monkeypatch.setenv("BOOKING_EVENT_URL", "https://cal.com/deepsearch/demo")
         monkeypatch.setenv("INSIDE_NOTIFICATION_EMAIL", "inside@deepsearch.ch")
         monkeypatch.setenv("EMAIL_FROM_ADDRESS", "DeepSearch <notifications@deepsearch.ch>")
 
@@ -69,13 +69,13 @@ class TestProductionEmailStartupValidation:
             Settings()
         assert "RESEND_API_KEY" in str(exc_info.value)
 
-    def test_production_fails_when_calendly_event_url_missing(self, monkeypatch):
-        """Missing CALENDLY_EVENT_URL in production raises ValidationError at startup."""
+    def test_production_fails_when_booking_event_url_missing(self, monkeypatch):
+        """Missing BOOKING_EVENT_URL in production raises ValidationError at startup."""
         self._full_prod_env(monkeypatch)
-        monkeypatch.delenv("CALENDLY_EVENT_URL")
+        monkeypatch.delenv("BOOKING_EVENT_URL")
         with pytest.raises(ValidationError) as exc_info:
             Settings()
-        assert "CALENDLY_EVENT_URL" in str(exc_info.value)
+        assert "BOOKING_EVENT_URL" in str(exc_info.value)
 
     def test_production_fails_when_inside_notification_email_missing(self, monkeypatch):
         """Missing INSIDE_NOTIFICATION_EMAIL in production raises ValidationError at startup."""
@@ -98,14 +98,14 @@ class TestProductionEmailStartupValidation:
         monkeypatch.setenv("DATABASE_URL", self._DB)
         monkeypatch.setenv("ENVIRONMENT", "production")
         monkeypatch.delenv("RESEND_API_KEY", raising=False)
-        monkeypatch.delenv("CALENDLY_EVENT_URL", raising=False)
+        monkeypatch.delenv("BOOKING_EVENT_URL", raising=False)
         monkeypatch.delenv("INSIDE_NOTIFICATION_EMAIL", raising=False)
         monkeypatch.delenv("EMAIL_FROM_ADDRESS", raising=False)
         with pytest.raises(ValidationError) as exc_info:
             Settings()
         error_text = str(exc_info.value)
         assert "RESEND_API_KEY" in error_text
-        assert "CALENDLY_EVENT_URL" in error_text
+        assert "BOOKING_EVENT_URL" in error_text
         assert "INSIDE_NOTIFICATION_EMAIL" in error_text
         assert "EMAIL_FROM_ADDRESS" in error_text
 
@@ -114,7 +114,7 @@ class TestProductionEmailStartupValidation:
         monkeypatch.setenv("DATABASE_URL", self._DB)
         monkeypatch.setenv("ENVIRONMENT", "development")
         monkeypatch.delenv("RESEND_API_KEY", raising=False)
-        monkeypatch.delenv("CALENDLY_EVENT_URL", raising=False)
+        monkeypatch.delenv("BOOKING_EVENT_URL", raising=False)
         monkeypatch.delenv("INSIDE_NOTIFICATION_EMAIL", raising=False)
         settings = Settings()
         assert settings.is_development
@@ -124,7 +124,7 @@ class TestProductionEmailStartupValidation:
         monkeypatch.setenv("DATABASE_URL", self._DB)
         monkeypatch.setenv("ENVIRONMENT", "staging")
         monkeypatch.delenv("RESEND_API_KEY", raising=False)
-        monkeypatch.delenv("CALENDLY_EVENT_URL", raising=False)
+        monkeypatch.delenv("BOOKING_EVENT_URL", raising=False)
         monkeypatch.delenv("INSIDE_NOTIFICATION_EMAIL", raising=False)
         settings = Settings()
         assert settings.environment == "staging"

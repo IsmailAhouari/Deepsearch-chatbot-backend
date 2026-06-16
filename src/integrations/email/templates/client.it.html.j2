@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="it" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Richiesta ricevuta – DeepSearch</title>
+  <style>
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse; }
+    img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+    body { margin: 0; padding: 0; background-color: #F2F4F8; }
+
+    @media only screen and (max-width: 600px) {
+      .email-container { width: 100% !important; }
+      .step-col { width: 100% !important; display: block !important; padding-bottom: 12px !important; }
+      .cta-btn { width: 100% !important; text-align: center !important; }
+      .hero-padding { padding: 32px 20px !important; }
+      .section-padding { padding: 24px 20px !important; }
+    }
+  </style>
+</head>
+<body>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#F2F4F8">
+    <tr>
+      <td align="center" style="padding: 32px 16px;">
+
+        <table class="email-container" role="presentation" width="600" cellpadding="0" cellspacing="0"
+               style="background-color: #FFFFFF; border: 1px solid #E2E6EF; border-radius: 12px; overflow: hidden;">
+
+          <!-- Hero -->
+          <tr>
+            <td class="hero-padding" style="padding: 48px 32px 36px 32px; text-align: center; background: #FFFFFF;">
+
+              <!-- Success icon -->
+              <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin-bottom: 24px;">
+                <tr>
+                  <td style="background: #D1FAE5; border: 1px solid #6EE7B7; border-radius: 50%; width: 64px; height: 64px; text-align: center; vertical-align: middle;">
+                    <span style="font-size: 28px; line-height: 64px; display: block; color: #065F46;">✓</span>
+                  </td>
+                </tr>
+              </table>
+
+              <h1 style="font-family: 'Inter', Arial, sans-serif; font-size: 26px; font-weight: 700; color: #111827; margin: 0 0 12px 0; letter-spacing: -0.03em; line-height: 1.2;">
+                Richiesta ricevuta,<br />{{ nome }}
+              </h1>
+              <p style="font-family: 'Inter', Arial, sans-serif; font-size: 15px; color: #6B7280; margin: 0 auto; max-width: 400px; line-height: 1.6;">
+                {% if request_type == "demo" %}
+                Il tuo interesse per una demo di DeepSearch è stato registrato. Il nostro team ti contatterà entro 1 giorno lavorativo.
+                {% elif request_type == "contact" %}
+                La tua richiesta di contatto è stata inoltrata al nostro team. Ti risponderemo al più presto.
+                {% else %}
+                La tua richiesta personalizzata è stata ricevuta. Un nostro specialista ti contatterà per capire meglio le tue esigenze.
+                {% endif %}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Summary card -->
+          <tr>
+            <td class="section-padding" style="padding: 0 32px 28px 32px; background: #FFFFFF;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                     style="background: #F8F9FC; border: 1px solid #E2E6EF; border-radius: 10px; overflow: hidden;">
+
+                <tr>
+                  <td colspan="2" style="padding: 14px 20px; border-bottom: 1px solid #E2E6EF;">
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #9CA3AF; margin: 0;">
+                      Riepilogo della tua richiesta
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Nome + Azienda -->
+                <tr>
+                  <td width="50%" style="padding: 14px 20px; border-right: 1px solid #E2E6EF; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #9CA3AF; margin: 0 0 3px 0;">Nome</p>
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #111827; margin: 0;">{{ nome }}</p>
+                  </td>
+                  <td width="50%" style="padding: 14px 20px; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #9CA3AF; margin: 0 0 3px 0;">Azienda</p>
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #111827; margin: 0;">{{ azienda }}</p>
+                  </td>
+                </tr>
+
+                <!-- Tipo richiesta + Interesse -->
+                <tr>
+                  <td width="50%" style="padding: 14px 20px; border-right: 1px solid #E2E6EF; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #9CA3AF; margin: 0 0 6px 0;">Tipo richiesta</p>
+                    <span style="display: inline-block; padding: 3px 10px; border-radius: 20px; font-family: 'Inter', Arial, sans-serif; font-size: 11px; font-weight: 600; background: #D1FAE5; color: #065F46; border: 1px solid #6EE7B7;">
+                      {% if request_type == "demo" %}Demo
+                      {%- elif request_type == "contact" %}Contatto
+                      {%- else %}Richiesta personalizzata{% endif %}
+                    </span>
+                  </td>
+                  <td width="50%" style="padding: 14px 20px; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #9CA3AF; margin: 0 0 6px 0;">Area di interesse</p>
+                    {% set interest = intent or request_nature %}
+                    {% if interest %}
+                    <span style="display: inline-block; padding: 3px 10px; border-radius: 20px; font-family: 'Inter', Arial, sans-serif; font-size: 11px; font-weight: 600; background: #DBEAFE; color: #1D4ED8; border: 1px solid #93C5FD;">
+                      {{ interest }}
+                    </span>
+                    {% else %}
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 13px; color: #9CA3AF; margin: 0; font-style: italic;">—</p>
+                    {% endif %}
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+
+          <!-- Divider with label -->
+          <tr>
+            <td style="padding: 0 32px 24px 32px; background: #FFFFFF;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="50%" style="vertical-align: middle;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="border-top: 1px solid #E2E6EF; line-height: 0; font-size: 0;">&nbsp;</td></tr></table>
+                  </td>
+                  <td style="padding: 0 16px; white-space: nowrap; text-align: center; vertical-align: middle;">
+                    <span style="font-family: 'Inter', Arial, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9CA3AF;">Cosa succede ora</span>
+                  </td>
+                  <td width="50%" style="vertical-align: middle;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="border-top: 1px solid #E2E6EF; line-height: 0; font-size: 0;">&nbsp;</td></tr></table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Next steps -->
+          <tr>
+            <td class="section-padding" style="padding: 0 32px 28px 32px; background: #FFFFFF;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+
+                <!-- Step 1 -->
+                <tr>
+                  <td valign="top">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td valign="top" width="40" style="padding-right: 14px; padding-top: 2px;">
+                          <table role="presentation" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td style="background: #1B6FEB; border-radius: 50%; width: 28px; height: 28px; text-align: center; vertical-align: middle;">
+                                <span style="font-family: 'Inter', Arial, sans-serif; font-size: 12px; font-weight: 700; color: #ffffff; line-height: 28px; display: block;">1</span>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                        <td valign="top">
+                          <p style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; font-weight: 600; color: #111827; margin: 0 0 3px 0;">Presa in carico della richiesta</p>
+                          <p style="font-family: 'Inter', Arial, sans-serif; font-size: 13px; color: #6B7280; margin: 0; line-height: 1.5;">Il nostro team ha ricevuto la tua richiesta e la sta analizzando per individuare il profilo più adatto.</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Connector -->
+                <tr>
+                  <td style="padding-left: 19px; padding-top: 8px; padding-bottom: 8px;">
+                    <div style="width: 1px; height: 16px; background: #E2E6EF; margin-left: 1px;"></div>
+                  </td>
+                </tr>
+
+                <!-- Step 2 -->
+                <tr>
+                  <td valign="top">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td valign="top" width="40" style="padding-right: 14px; padding-top: 2px;">
+                          <table role="presentation" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td style="background: #1B6FEB; border-radius: 50%; width: 28px; height: 28px; text-align: center; vertical-align: middle;">
+                                <span style="font-family: 'Inter', Arial, sans-serif; font-size: 12px; font-weight: 700; color: #ffffff; line-height: 28px; display: block;">2</span>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                        <td valign="top">
+                          <p style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; font-weight: 600; color: #111827; margin: 0 0 3px 0;">
+                            {% if request_type == "demo" %}Sessione demo personalizzata
+                            {%- elif request_type == "contact" %}Risposta alla tua richiesta
+                            {%- else %}Proposta su misura{% endif %}
+                          </p>
+                          <p style="font-family: 'Inter', Arial, sans-serif; font-size: 13px; color: #6B7280; margin: 0; line-height: 1.5;">
+                            {% if request_type == "demo" %}Ti mostreremo come DeepSearch risponde specificamente alle tue esigenze di intelligence.
+                            {%- elif request_type == "contact" %}Il team ti fornirà tutte le informazioni richieste e un percorso di valutazione adeguato.
+                            {%- else %}Sulla base delle tue esigenze, costruiremo una proposta specifica per il tuo contesto operativo.{% endif %}
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+
+          {% if request_type == "demo" and booking_url %}
+          <!-- Booking CTA (cal.eu) -->
+          <tr>
+            <td style="padding: 0 32px 32px 32px; background: #FFFFFF;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                     style="background: #EEF4FF; border: 1px solid #93C5FD; border-radius: 10px;">
+                <tr>
+                  <td style="padding: 24px 24px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td valign="middle" style="padding-right: 20px;">
+                          <p style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; font-weight: 600; color: #111827; margin: 0 0 4px 0;">Prenota subito la tua sessione</p>
+                          <p style="font-family: 'Inter', Arial, sans-serif; font-size: 12px; color: #6B7280; margin: 0; line-height: 1.5;">Scegli il momento più comodo per te — 30 minuti, nessun obbligo.</p>
+                        </td>
+                        <td valign="middle" align="right" style="white-space: nowrap;">
+                          <a href="{{ booking_url }}"
+                             class="cta-btn"
+                             style="display: inline-block; background: #1B6FEB; color: #ffffff; font-family: 'Inter', Arial, sans-serif; font-size: 13px; font-weight: 600; text-decoration: none; padding: 11px 22px; border-radius: 6px; white-space: nowrap;">
+                            Prenota Demo &rarr;
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+
+          <!-- Value prop section -->
+          <tr>
+            <td style="background: #F8F9FC; border-top: 1px solid #E2E6EF; padding: 28px 32px;">
+              <p style="font-family: 'Inter', Arial, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #9CA3AF; margin: 0 0 18px 0;">
+                Cosa troverai in DeepSearch
+              </p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <!-- Feature 1 -->
+                  <td valign="top" width="33%" style="padding-right: 12px; text-align: center;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto 12px auto;">
+                      <tr>
+                        <td style="background: #1B6FEB; border-radius: 50%; width: 40px; height: 40px; text-align: center; vertical-align: middle;">
+                          <span style="font-family: Arial, sans-serif; font-size: 18px; color: #ffffff; line-height: 40px; display: block;">&#9906;</span>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 12px; font-weight: 600; color: #111827; margin: 0 0 4px 0;">Intelligence profonda</p>
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 11px; color: #6B7280; margin: 0; line-height: 1.5;">Analisi avanzata su aziende, persone e reti di relazioni.</p>
+                  </td>
+                  <!-- Feature 2 -->
+                  <td valign="top" width="33%" style="padding-right: 12px; padding-left: 12px; border-left: 1px solid #E2E6EF; text-align: center;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto 12px auto;">
+                      <tr>
+                        <td style="background: #1B6FEB; border-radius: 50%; width: 40px; height: 40px; text-align: center; vertical-align: middle;">
+                          <span style="font-family: Arial, sans-serif; font-size: 18px; color: #ffffff; line-height: 40px; display: block;">&#9193;</span>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 12px; font-weight: 600; color: #111827; margin: 0 0 4px 0;">Risposta in tempo reale</p>
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 11px; color: #6B7280; margin: 0; line-height: 1.5;">Risultati immediati da fonti strutturate e aperte.</p>
+                  </td>
+                  <!-- Feature 3 -->
+                  <td valign="top" width="33%" style="padding-left: 12px; border-left: 1px solid #E2E6EF; text-align: center;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto 12px auto;">
+                      <tr>
+                        <td style="background: #1B6FEB; border-radius: 50%; width: 40px; height: 40px; text-align: center; vertical-align: middle;">
+                          <span style="font-family: Arial, sans-serif; font-size: 18px; color: #ffffff; line-height: 40px; display: block;">&#10003;</span>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 12px; font-weight: 600; color: #111827; margin: 0 0 4px 0;">Compliance-ready</p>
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 11px; color: #6B7280; margin: 0; line-height: 1.5;">Progettato per ambienti regolamentati: AML, KYC, Due Diligence.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background: #FFFFFF; border-top: 1px solid #E2E6EF; padding: 20px 32px; border-radius: 0 0 12px 12px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 12px; color: #6B7280; margin: 0 0 8px 0;">
+                      Hai domande? Scrivici a&nbsp;
+                      <a href="mailto:info@deepsearch.io" style="color: #1D4ED8; text-decoration: none;">info@deepsearch.io</a>
+                    </p>
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 11px; color: #9CA3AF; margin: 0; line-height: 1.6;">
+                      Hai ricevuto questa email perché hai compilato un modulo su <strong style="color: #6B7280;">deepsearch.io</strong>.
+                      Se non eri tu, puoi ignorare questo messaggio in tutta sicurezza.
+                      <br />
+                      &copy; 2026 DeepSearch.ch
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

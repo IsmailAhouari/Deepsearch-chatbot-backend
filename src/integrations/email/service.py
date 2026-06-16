@@ -15,8 +15,9 @@ import httpx
 
 from src.core.config import Settings
 from src.core.logging import get_logger
-from src.integrations.calendly.schemas import BookingLinkRequest
-from src.integrations.calendly.service import generate_booking_link
+from src.integrations.booking.schemas import BookingLinkRequest
+from src.integrations.booking.service import generate_booking_link
+from src.integrations.email.html_templates import render_client_html, render_operator_html
 
 logger = get_logger(__name__)
 
@@ -70,10 +71,12 @@ class EmailService:
             type_label = _REQUEST_TYPE_LABELS.get(request_type, request_type)
             subject = f"New Lead — {type_label}"
             body = _build_operator_body(lead, request_type, type_label)
+            html = render_operator_html(lead, request_type, type_label)
             self._send(
                 to=self._notification_email,
                 subject=subject,
                 text=body,
+                html=html,
             )
             logger.info(
                 "operator_notification_sent",
@@ -95,7 +98,7 @@ class EmailService:
         """Send Lead Confirmation to the Lead after form submission.
 
         Demo Requests include a pre-filled Booking Link.
-        When CALENDLY_EVENT_URL is absent, a plain placeholder message is sent instead.
+        When BOOKING_EVENT_URL is absent, a plain placeholder message is sent instead.
         Contact and Generic Requests receive a plain confirmation (no Booking Link).
         """
         if not self._api_key:
@@ -107,8 +110,8 @@ class EmailService:
             return
 
         try:
-            subject, body = self._build_confirmation(lead, request_type)
-            self._send(to=lead.email, subject=subject, text=body)
+            subject, body, html = self._build_confirmation(lead, request_type)
+            self._send(to=lead.email, subject=subject, text=body, html=html)
             logger.info(
                 "lead_confirmation_sent",
                 lead_id=str(lead.id),
@@ -123,21 +126,23 @@ class EmailService:
                 error=str(exc),
             )
 
-    def _build_confirmation(self, lead: object, request_type: str) -> tuple[str, str]:
+    def _build_confirmation(self, lead: object, request_type: str) -> tuple[str, str, str]:
         if request_type == "demo":
             booking_url = self._resolve_booking_url(lead)
             return (
                 "La tua richiesta di demo è stata ricevuta — DeepSearch",
                 _build_demo_confirmation_body(lead, booking_url),
+                render_client_html(lead, request_type, booking_url),
             )
         # Issues 004 handles distinct contact/generic copy
         return (
             "La tua richiesta è stata ricevuta — DeepSearch",
             _build_plain_confirmation_body(lead),
+            render_client_html(lead, request_type, None),
         )
 
     def _resolve_booking_url(self, lead: object) -> str | None:
-        """Return the Calendly Booking Link URL, or None if unconfigured."""
+        """Return the Cal.com Booking Link URL, or None if unconfigured."""
         try:
             req = BookingLinkRequest(
                 lead_id=lead.id,
@@ -149,31 +154,35 @@ class EmailService:
         except ValueError:
             logger.warning(
                 "lead_confirmation_booking_link_unavailable",
-                reason="CALENDLY_EVENT_URL not configured",
+                reason="BOOKING_EVENT_URL not configured",
                 lead_id=str(lead.id),
             )
             return None
 
     # ── Internal ──────────────────────────────────────────────────────────────
 
-    def _send(self, *, to: str, subject: str, text: str) -> None:
+    def _send(self, *, to: str, subject: str, text: str, html: str | None = None) -> None:
         """POST to Resend with up to _MAX_ATTEMPTS tries and exponential backoff.
 
         Sleeps _RETRY_DELAYS[i] seconds BETWEEN attempts only — no sleep follows
         the final failed attempt before the exception is raised.
         """
+        payload: dict = {
+            "from": self._from_address,
+            "to": [to],
+            "subject": subject,
+            "text": text,
+        }
+        if html is not None:
+            payload["html"] = html
+
         last_exc: Exception | None = None
         for attempt in range(1, _MAX_ATTEMPTS + 1):
             try:
                 response = httpx.post(
                     _RESEND_EMAILS_URL,
                     headers={"Authorization": f"Bearer {self._api_key}"},
-                    json={
-                        "from": self._from_address,
-                        "to": [to],
-                        "subject": subject,
-                        "text": text,
-                    },
+                    json=payload,
                 )
                 response.raise_for_status()
                 return

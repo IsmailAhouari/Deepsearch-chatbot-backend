@@ -42,12 +42,10 @@ class Settings(BaseSettings):
     crm_api_key: str | None = None
     """API key for the configured CRM provider (if applicable)."""
 
-    # ── Calendly ─────────────────────────────────────────────────────────────
-    calendly_api_key: str | None = None
-    """Calendly Personal Access Token for booking link generation."""
-
-    calendly_event_url: str | None = None
-    """Calendly event type URL (e.g. https://calendly.com/yourname/demo)."""
+    # ── Booking (Cal.com) ────────────────────────────────────────────────────
+    booking_event_url: str | None = None
+    """Cal.com event type URL (e.g. https://cal.com/yourname/deepsearch-demo).
+    Booking links are built by appending pre-fill query params — no API key needed."""
 
     # ── Email (Resend) ────────────────────────────────────────────────────────
     resend_api_key: str | None = None
@@ -97,7 +95,7 @@ class Settings(BaseSettings):
             name
             for name, value in [
                 ("RESEND_API_KEY", self.resend_api_key),
-                ("CALENDLY_EVENT_URL", self.calendly_event_url),
+                ("BOOKING_EVENT_URL", self.booking_event_url),
                 ("INSIDE_NOTIFICATION_EMAIL", self.inside_notification_email),
                 ("EMAIL_FROM_ADDRESS", self.email_from_address),
             ]

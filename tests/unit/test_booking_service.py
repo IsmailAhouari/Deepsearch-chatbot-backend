@@ -1,12 +1,12 @@
-"""Unit tests for Calendly booking link service.
+"""Unit tests for the Cal.com booking link service.
 
 Tests verify:
   - generate_booking_link produces correct URL structure
   - UTM parameters are correctly appended
   - Lead ID and session ID are embedded as tracking params
   - Pre-fill fields (name, email) are conditionally included
-  - ValueError raised when CALENDLY_EVENT_URL is not configured
-  - PII is NOT logged (only email domain in general logging)
+  - ValueError raised when BOOKING_EVENT_URL is not configured
+  - PII is NOT logged
 """
 from __future__ import annotations
 
@@ -16,7 +16,9 @@ from unittest.mock import patch
 
 import pytest
 
-from src.integrations.calendly.schemas import BookingLinkRequest
+from src.integrations.booking.schemas import BookingLinkRequest
+
+_EVENT_URL = "https://cal.com/deepsearch/demo"
 
 
 @pytest.fixture(autouse=True)
@@ -39,15 +41,15 @@ def _make_request(**kwargs) -> BookingLinkRequest:
 
 
 class TestBookingLinkGeneration:
-    """Test URL generation for Calendly booking links."""
+    """Test URL generation for Cal.com booking links."""
 
     def test_generates_url_with_utm_params(self):
         """Booking link includes utm_source, utm_medium, utm_campaign."""
-        from src.integrations.calendly.service import generate_booking_link
+        from src.integrations.booking.service import generate_booking_link
         from src.core.config import get_settings
 
         with patch.dict(os.environ, {
-            "CALENDLY_EVENT_URL": "https://calendly.com/deepsearch/demo",
+            "BOOKING_EVENT_URL": _EVENT_URL,
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
         }):
             get_settings.cache_clear()
@@ -60,14 +62,14 @@ class TestBookingLinkGeneration:
         assert "utm_campaign=demo_request" in result.booking_url
 
     def test_lead_id_embedded_in_url(self):
-        """Lead ID is embedded as utm_content for CRM correlation."""
-        from src.integrations.calendly.service import generate_booking_link
+        """Lead ID is embedded as utm_content for correlation."""
+        from src.integrations.booking.service import generate_booking_link
         from src.core.config import get_settings
 
         lead_id = str(uuid.uuid4())
 
         with patch.dict(os.environ, {
-            "CALENDLY_EVENT_URL": "https://calendly.com/deepsearch/demo",
+            "BOOKING_EVENT_URL": _EVENT_URL,
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
         }):
             get_settings.cache_clear()
@@ -79,13 +81,13 @@ class TestBookingLinkGeneration:
 
     def test_session_id_embedded_in_url(self):
         """Session ID is embedded as utm_term for analytics correlation."""
-        from src.integrations.calendly.service import generate_booking_link
+        from src.integrations.booking.service import generate_booking_link
         from src.core.config import get_settings
 
         session_id = str(uuid.uuid4())
 
         with patch.dict(os.environ, {
-            "CALENDLY_EVENT_URL": "https://calendly.com/deepsearch/demo",
+            "BOOKING_EVENT_URL": _EVENT_URL,
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
         }):
             get_settings.cache_clear()
@@ -96,11 +98,11 @@ class TestBookingLinkGeneration:
 
     def test_name_prefill_included_when_provided(self):
         """When name is provided, it appears as a 'name' param in the URL."""
-        from src.integrations.calendly.service import generate_booking_link
+        from src.integrations.booking.service import generate_booking_link
         from src.core.config import get_settings
 
         with patch.dict(os.environ, {
-            "CALENDLY_EVENT_URL": "https://calendly.com/deepsearch/demo",
+            "BOOKING_EVENT_URL": _EVENT_URL,
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
         }):
             get_settings.cache_clear()
@@ -112,11 +114,11 @@ class TestBookingLinkGeneration:
 
     def test_name_not_in_url_when_not_provided(self):
         """When name is not provided, 'name=' must not appear in the URL."""
-        from src.integrations.calendly.service import generate_booking_link
+        from src.integrations.booking.service import generate_booking_link
         from src.core.config import get_settings
 
         with patch.dict(os.environ, {
-            "CALENDLY_EVENT_URL": "https://calendly.com/deepsearch/demo",
+            "BOOKING_EVENT_URL": _EVENT_URL,
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
         }):
             get_settings.cache_clear()
@@ -126,14 +128,14 @@ class TestBookingLinkGeneration:
         assert "name=" not in result.booking_url
 
     def test_event_url_base_is_preserved(self):
-        """The base Calendly event URL appears at the start of the booking link."""
-        from src.integrations.calendly.service import generate_booking_link
+        """The base Cal.com event URL appears at the start of the booking link."""
+        from src.integrations.booking.service import generate_booking_link
         from src.core.config import get_settings
 
-        event_url = "https://calendly.com/deepsearch/enterprise-demo"
+        event_url = "https://cal.com/deepsearch/enterprise-demo"
 
         with patch.dict(os.environ, {
-            "CALENDLY_EVENT_URL": event_url,
+            "BOOKING_EVENT_URL": event_url,
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
         }):
             get_settings.cache_clear()
@@ -144,34 +146,33 @@ class TestBookingLinkGeneration:
         assert result.event_url == event_url
 
     def test_raises_when_event_url_not_configured(self):
-        """ValueError raised when CALENDLY_EVENT_URL is not in environment."""
-        from src.integrations.calendly.service import generate_booking_link
+        """ValueError raised when BOOKING_EVENT_URL is not in environment."""
+        from src.integrations.booking.service import generate_booking_link
         from src.core.config import get_settings
 
-        # Remove CALENDLY_EVENT_URL from environment
-        env_without_calendly = {
+        env_without_booking = {
             k: v for k, v in os.environ.items()
-            if k != "CALENDLY_EVENT_URL"
+            if k != "BOOKING_EVENT_URL"
         }
-        env_without_calendly.update({
+        env_without_booking.update({
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
         })
-        env_without_calendly.pop("CALENDLY_EVENT_URL", None)
+        env_without_booking.pop("BOOKING_EVENT_URL", None)
 
-        with patch.dict(os.environ, env_without_calendly, clear=True):
+        with patch.dict(os.environ, env_without_booking, clear=True):
             get_settings.cache_clear()
 
             req = _make_request()
-            with pytest.raises(ValueError, match="CALENDLY_EVENT_URL"):
+            with pytest.raises(ValueError, match="BOOKING_EVENT_URL"):
                 generate_booking_link(req)
 
     def test_booking_url_is_a_valid_url_string(self):
         """Booking URL must be a valid URL starting with https://."""
-        from src.integrations.calendly.service import generate_booking_link
+        from src.integrations.booking.service import generate_booking_link
         from src.core.config import get_settings
 
         with patch.dict(os.environ, {
-            "CALENDLY_EVENT_URL": "https://calendly.com/deepsearch/demo",
+            "BOOKING_EVENT_URL": _EVENT_URL,
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
         }):
             get_settings.cache_clear()
@@ -183,11 +184,11 @@ class TestBookingLinkGeneration:
 
     def test_tracking_params_dict_is_populated(self):
         """tracking_params dict in response contains all appended parameters."""
-        from src.integrations.calendly.service import generate_booking_link
+        from src.integrations.booking.service import generate_booking_link
         from src.core.config import get_settings
 
         with patch.dict(os.environ, {
-            "CALENDLY_EVENT_URL": "https://calendly.com/deepsearch/demo",
+            "BOOKING_EVENT_URL": _EVENT_URL,
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
         }):
             get_settings.cache_clear()
@@ -204,14 +205,14 @@ class TestBookingLinkPIISafety:
 
     def test_email_not_logged_by_service(self, capfd):
         """generate_booking_link must not write raw email to stdout/stderr."""
-        from src.integrations.calendly.service import generate_booking_link
+        from src.integrations.booking.service import generate_booking_link
         from src.core.config import get_settings
         from src.core.logging import configure_logging
 
         configure_logging("development", "DEBUG")
 
         with patch.dict(os.environ, {
-            "CALENDLY_EVENT_URL": "https://calendly.com/deepsearch/demo",
+            "BOOKING_EVENT_URL": _EVENT_URL,
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
         }):
             get_settings.cache_clear()
@@ -221,7 +222,6 @@ class TestBookingLinkPIISafety:
         captured = capfd.readouterr()
         output = captured.out + captured.err
 
-        # Raw email must NOT appear in log output
         assert "private@email.com" not in output, (
-            "Raw email address was logged by Calendly service — this leaks PII"
+            "Raw email address was logged by the booking service — this leaks PII"
         )

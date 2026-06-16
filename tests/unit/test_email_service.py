@@ -255,7 +255,7 @@ class TestLeadConfirmation:
         from src.core.config import get_settings
         get_settings.cache_clear()
 
-    def _fake_booking_response(self, booking_url: str = "https://calendly.com/deepsearch/demo?name=test"):
+    def _fake_booking_response(self, booking_url: str = "https://cal.com/deepsearch/demo?name=test"):
         from unittest.mock import MagicMock
         resp = MagicMock()
         resp.booking_url = booking_url
@@ -299,7 +299,7 @@ class TestLeadConfirmation:
         """Lead Confirmation for a Demo Request includes the Booking Link URL."""
         service = _make_service()
         lead = _make_lead()
-        booking_url = "https://calendly.com/deepsearch/demo?lead_id=abc"
+        booking_url = "https://cal.com/deepsearch/demo?lead_id=abc"
 
         with patch("src.integrations.email.service.httpx") as mock_httpx, \
              patch("src.integrations.email.service.generate_booking_link",
@@ -329,15 +329,15 @@ class TestLeadConfirmation:
         assert req.lead_id == lead.id
         assert req.session_id == lead.session_id
 
-    def test_confirmation_uses_placeholder_when_calendly_url_absent(self):
-        """When CALENDLY_EVENT_URL is missing, email is sent with placeholder text."""
+    def test_confirmation_uses_placeholder_when_booking_url_absent(self):
+        """When BOOKING_EVENT_URL is missing, email is sent with placeholder text."""
         service = _make_service()
         lead = _make_lead()
 
-        # generate_booking_link raises ValueError when CALENDLY_EVENT_URL is unset
+        # generate_booking_link raises ValueError when BOOKING_EVENT_URL is unset
         with patch("src.integrations.email.service.httpx") as mock_httpx, \
              patch("src.integrations.email.service.generate_booking_link",
-                   side_effect=ValueError("CALENDLY_EVENT_URL not configured")):
+                   side_effect=ValueError("BOOKING_EVENT_URL not configured")):
             mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
             service.send_lead_confirmation(lead, "demo")
 
@@ -346,7 +346,7 @@ class TestLeadConfirmation:
         payload = mock_httpx.post.call_args.kwargs["json"]
         body = payload.get("text", "") + payload.get("html", "")
         # Placeholder text replaces the booking link
-        assert "calendly.com" not in body
+        assert "cal.com" not in body
         assert len(body) > 20  # non-empty confirmation
 
     def test_confirmation_skips_when_api_key_absent(self):
@@ -408,7 +408,7 @@ class TestLeadConfirmationContactGeneric:
 
         payload = mock_httpx.post.call_args.kwargs["json"]
         body = payload.get("text", "") + payload.get("html", "")
-        assert "calendly.com" not in body
+        assert "cal.com" not in body
 
     @pytest.mark.parametrize("request_type", ["contact", "generic_request"])
     def test_booking_link_not_generated_for_non_demo(self, request_type):
@@ -698,3 +698,131 @@ class TestSendNotificationEmailsTask:
                 await send_notification_emails(lead_id, "demo")  # must not raise
 
         mock_instance.send_lead_confirmation.assert_called_once_with(mock_lead, "demo")
+
+
+# ── Multipart HTML email (Cycles: _send + wiring) ────────────────────────────
+
+class TestSendHtmlParam:
+    """_send() passes 'html' key to Resend when an html body is provided."""
+
+    def setup_method(self):
+        from src.core.config import get_settings
+        get_settings.cache_clear()
+
+    def teardown_method(self):
+        from src.core.config import get_settings
+        get_settings.cache_clear()
+
+    def test_send_includes_html_in_payload_when_provided(self):
+        service = _make_service()
+        with patch("src.integrations.email.service.httpx") as mock_httpx:
+            mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
+            service._send(to="a@b.com", subject="S", text="plain text", html="<p>html</p>")
+
+        payload = mock_httpx.post.call_args.kwargs["json"]
+        assert payload.get("html") == "<p>html</p>"
+        assert payload.get("text") == "plain text"
+
+    def test_send_omits_html_key_when_not_provided(self):
+        service = _make_service()
+        with patch("src.integrations.email.service.httpx") as mock_httpx:
+            mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
+            service._send(to="a@b.com", subject="S", text="plain only")
+
+        payload = mock_httpx.post.call_args.kwargs["json"]
+        assert "html" not in payload
+
+
+class TestOperatorNotificationMultipart:
+    """send_operator_notification sends a multipart email with HTML body."""
+
+    def setup_method(self):
+        from src.core.config import get_settings
+        get_settings.cache_clear()
+
+    def teardown_method(self):
+        from src.core.config import get_settings
+        get_settings.cache_clear()
+
+    def test_operator_notification_includes_html_in_payload(self):
+        service = _make_service()
+        lead = _make_lead()
+
+        with patch("src.integrations.email.service.httpx") as mock_httpx:
+            mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
+            service.send_operator_notification(lead, "demo")
+
+        payload = mock_httpx.post.call_args.kwargs["json"]
+        html = payload.get("html", "")
+        assert "<!DOCTYPE html" in html
+        assert lead.nome in html
+
+    def test_operator_notification_preserves_plain_text_body(self):
+        service = _make_service()
+        lead = _make_lead()
+
+        with patch("src.integrations.email.service.httpx") as mock_httpx:
+            mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
+            service.send_operator_notification(lead, "demo")
+
+        payload = mock_httpx.post.call_args.kwargs["json"]
+        assert len(payload.get("text", "")) > 50
+
+
+class TestLeadConfirmationMultipart:
+    """send_lead_confirmation sends a multipart email with HTML body."""
+
+    def setup_method(self):
+        from src.core.config import get_settings
+        get_settings.cache_clear()
+
+    def teardown_method(self):
+        from src.core.config import get_settings
+        get_settings.cache_clear()
+
+    def _fake_booking(self, url="https://cal.eu/deepsearch/demo"):
+        return MagicMock(booking_url=url)
+
+    def test_demo_confirmation_includes_html_with_lead_name(self):
+        service = _make_service()
+        lead = _make_lead(nome="Giulia Bianchi")
+
+        with patch("src.integrations.email.service.httpx") as mock_httpx, \
+             patch("src.integrations.email.service.generate_booking_link",
+                   return_value=self._fake_booking()):
+            mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
+            service.send_lead_confirmation(lead, "demo")
+
+        payload = mock_httpx.post.call_args.kwargs["json"]
+        html = payload.get("html", "")
+        assert "<!DOCTYPE html" in html
+        assert "Giulia Bianchi" in html
+
+    def test_demo_confirmation_html_includes_booking_url(self):
+        service = _make_service()
+        lead = _make_lead()
+        booking_url = "https://cal.eu/deepsearch/demo-slot"
+
+        with patch("src.integrations.email.service.httpx") as mock_httpx, \
+             patch("src.integrations.email.service.generate_booking_link",
+                   return_value=self._fake_booking(booking_url)):
+            mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
+            service.send_lead_confirmation(lead, "demo")
+
+        payload = mock_httpx.post.call_args.kwargs["json"]
+        html = payload.get("html", "")
+        assert booking_url in html
+
+    @pytest.mark.parametrize("request_type", ["contact", "generic_request"])
+    def test_non_demo_confirmation_includes_html(self, request_type):
+        service = _make_service()
+        lead = _make_lead(nome="Marco Bello")
+
+        with patch("src.integrations.email.service.httpx") as mock_httpx:
+            mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
+            service.send_lead_confirmation(lead, request_type)
+
+        payload = mock_httpx.post.call_args.kwargs["json"]
+        html = payload.get("html", "")
+        assert "<!DOCTYPE html" in html
+        assert "Marco Bello" in html

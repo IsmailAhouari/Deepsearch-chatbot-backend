@@ -68,9 +68,10 @@ docker-compose up --build
 | `ADMIN_API_KEY` | ✅ | — | Static API key for admin routes (`X-Admin-Key` header) |
 | `CRM_ADAPTER_CLASS` | — | `NullAdapter` | Dotted import path of CRM adapter |
 | `CRM_API_KEY` | — | — | API key for the CRM provider |
-| `CALENDLY_API_KEY` | — | — | Calendly Personal Access Token |
-| `CALENDLY_EVENT_URL` | — | — | Calendly event type URL for booking links |
-| `RESEND_API_KEY` | — | — | Resend API key for transactional emails |
+| `BOOKING_EVENT_URL` | prod | — | Cal.com event type URL for Booking Links (e.g. `https://cal.com/yourname/demo`) |
+| `RESEND_API_KEY` | prod | — | Resend API key for transactional emails |
+| `EMAIL_FROM_ADDRESS` | prod | — | Verified sender (or `onboarding@resend.dev` for testing) |
+| `INSIDE_NOTIFICATION_EMAIL` | prod | — | Commercial Team inbox for Operator Notifications |
 | `ENVIRONMENT` | — | `development` | `development` / `staging` / `production` |
 | `CORS_ORIGINS` | — | `http://localhost:5173` | Comma-separated allowed origins |
 | `LOG_LEVEL` | — | `INFO` | Minimum log level |

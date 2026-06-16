@@ -19,7 +19,10 @@ restartPolicyMaxRetries = 3
 # CORS_ORIGINS        — JSON array, e.g. ["https://example.com"]
 # CRM_ADAPTER_CLASS   — (optional) dotted path to CRM adapter
 # CRM_API_KEY         — (optional) CRM provider API key
-# CALENDLY_API_KEY    — (optional) Calendly Personal Access Token
-# CALENDLY_EVENT_URL  — (optional) e.g. https://calendly.com/yourname/demo
-# RESEND_API_KEY      — (optional) Resend API key for transactional emails
 # LOG_LEVEL           — INFO (default) | DEBUG | WARNING | ERROR
+#
+# Required in PRODUCTION (startup fails fast if any is missing):
+# BOOKING_EVENT_URL        — cal.eu event URL, e.g. https://cal.eu/sma-sam-hxsd97/30min
+# RESEND_API_KEY           — Resend API key for transactional emails
+# EMAIL_FROM_ADDRESS       — verified sender (or onboarding@resend.dev for testing)
+# INSIDE_NOTIFICATION_EMAIL — Commercial Team inbox for Operator Notifications

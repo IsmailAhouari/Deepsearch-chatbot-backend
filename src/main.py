@@ -59,7 +59,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         environment=settings.environment,
         log_level=settings.log_level,
         crm_adapter=settings.crm_adapter_class,
-        calendly_enabled=bool(settings.calendly_api_key),
+        booking_enabled=bool(settings.booking_event_url),
     )
 
     # Warn about optional email config absent in non-production environments.
@@ -67,7 +67,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if not settings.is_production:
         _warn_missing_optional = [
             ("RESEND_API_KEY", settings.resend_api_key),
-            ("CALENDLY_EVENT_URL", settings.calendly_event_url),
+            ("BOOKING_EVENT_URL", settings.booking_event_url),
             ("INSIDE_NOTIFICATION_EMAIL", settings.inside_notification_email),
             ("EMAIL_FROM_ADDRESS", settings.email_from_address),
         ]
