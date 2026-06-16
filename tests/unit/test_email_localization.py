@@ -225,3 +225,25 @@ class TestOperatorBodyUnchanged:
         assert "── Qualification ──" in body
         assert "Name:" in body
         assert "Company:" in body
+
+
+class TestClientConfirmationSubjects:
+    def test_confirmation_subject_formatting(self):
+        from src.integrations.email.service import EmailService
+        from unittest.mock import patch
+
+        svc = MagicMock(spec=EmailService)
+        svc._build_confirmation = EmailService._build_confirmation.__get__(svc)
+        svc._resolve_booking_url = MagicMock(return_value="https://cal.com/test")
+
+        cases = [
+            ("en", "demo", "Your demo request has been received - DeepSearch™"),
+            ("it", "demo", "La tua richiesta di demo è stata ricevuta - DeepSearch™"),
+            ("en", "contact", "Your request has been received - DeepSearch™"),
+            ("it", "contact", "La tua richiesta è stata ricevuta - DeepSearch™"),
+        ]
+
+        for locale, request_type, expected in cases:
+            lead = make_lead(locale=locale)
+            subject, *_ = svc._build_confirmation(lead, request_type)
+            assert subject == expected

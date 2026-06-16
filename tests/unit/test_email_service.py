@@ -134,6 +134,22 @@ class TestOperatorNotification:
         payload = mock_httpx.post.call_args.kwargs["json"]
         assert "demo" in payload["subject"].lower() or "Demo" in payload["subject"]
 
+    def test_subject_format_deepsearch_prefix(self):
+        """Subject line starts with 'DeepSearch - ' prefix instead of 'New Lead — '."""
+        service = _make_service()
+        lead = _make_lead()
+
+        for request_type, expected_subject in [
+            ("contact", "DeepSearch - Contact Request"),
+            ("demo", "DeepSearch - Demo Request"),
+        ]:
+            with patch("src.integrations.email.service.httpx") as mock_httpx:
+                mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
+                service.send_operator_notification(lead, request_type)
+
+                payload = mock_httpx.post.call_args.kwargs["json"]
+                assert payload["subject"] == expected_subject
+
     def test_body_contains_lead_name_and_company(self):
         """Email body includes the Lead's nome and azienda."""
         service = _make_service()

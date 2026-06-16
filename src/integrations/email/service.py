@@ -79,7 +79,7 @@ class EmailService:
 
         try:
             type_label = _REQUEST_TYPE_LABELS.get(request_type, request_type)
-            subject = f"New Lead — {type_label}"
+            subject = f"DeepSearch - {type_label}"
             body = _build_operator_body(lead, request_type, type_label)
             html = render_operator_html(lead, request_type, type_label)
             self._send(
@@ -141,17 +141,17 @@ class EmailService:
         if request_type == "demo":
             booking_url = self._resolve_booking_url(lead)
             return (
-                "Your demo request has been received — DeepSearch"
+                "Your demo request has been received - DeepSearch™"
                 if lang == "en"
-                else "La tua richiesta di demo è stata ricevuta — DeepSearch",
+                else "La tua richiesta di demo è stata ricevuta - DeepSearch™",
                 _build_demo_confirmation_body(lead, booking_url),
                 render_client_html(lead, request_type, booking_url, lang=lang),
             )
         # Issues 004 handles distinct contact/generic copy
         return (
-            "Your request has been received — DeepSearch"
+            "Your request has been received - DeepSearch™"
             if lang == "en"
-            else "La tua richiesta è stata ricevuta — DeepSearch",
+            else "La tua richiesta è stata ricevuta - DeepSearch™",
             _build_plain_confirmation_body(lead),
             render_client_html(lead, request_type, None, lang=lang),
         )
