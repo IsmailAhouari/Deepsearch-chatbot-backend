@@ -31,6 +31,16 @@ _REQUEST_TYPE_LABELS: dict[str, str] = {
     "generic_request": "Generic Request",
 }
 
+_EMAIL_COPY: dict[str, dict[str, str]] = {
+    "it": {"greeting": "Ciao"},
+    "en": {"greeting": "Hi"},
+}
+
+
+def _get_copy(locale: str | None) -> dict[str, str]:
+    lang = (locale or "")[:2]
+    return _EMAIL_COPY.get(lang, _EMAIL_COPY["it"])
+
 
 class EmailService:
     """Simple transactional email service backed by Resend.
@@ -134,7 +144,7 @@ class EmailService:
                 "Your demo request has been received — DeepSearch"
                 if lang == "en"
                 else "La tua richiesta di demo è stata ricevuta — DeepSearch",
-                _build_demo_confirmation_body(lead, booking_url, lang=lang),
+                _build_demo_confirmation_body(lead, booking_url),
                 render_client_html(lead, request_type, booking_url, lang=lang),
             )
         # Issues 004 handles distinct contact/generic copy
@@ -142,7 +152,7 @@ class EmailService:
             "Your request has been received — DeepSearch"
             if lang == "en"
             else "La tua richiesta è stata ricevuta — DeepSearch",
-            _build_plain_confirmation_body(lead, lang=lang),
+            _build_plain_confirmation_body(lead),
             render_client_html(lead, request_type, None, lang=lang),
         )
 
@@ -198,14 +208,15 @@ class EmailService:
         raise last_exc  # type: ignore[misc]
 
 
-def _build_demo_confirmation_body(lead: object, booking_url: str | None, lang: str = "it") -> str:
+def _build_demo_confirmation_body(lead: object, booking_url: str | None) -> str:
     """Plain-text Lead Confirmation for a Demo Request."""
+    lang = (getattr(lead, "locale", None) or "it")[:2]
     if lang == "en":
         lines = [
             f"Hi {lead.nome or ''},",
             "",
             "Thank you for requesting a DeepSearch demo.",
-            "Your request has been received. A member of our team will contact you within 1 business day.",
+            "Your request has been received. A member of our team will contact you within business hours.",
             "",
         ]
         if booking_url:
@@ -243,8 +254,9 @@ def _build_demo_confirmation_body(lead: object, booking_url: str | None, lang: s
     return "\n".join(lines)
 
 
-def _build_plain_confirmation_body(lead: object, lang: str = "it") -> str:
+def _build_plain_confirmation_body(lead: object) -> str:
     """Plain-text Lead Confirmation for Contact and Generic Requests."""
+    lang = (getattr(lead, "locale", None) or "it")[:2]
     if lang == "en":
         lines = [
             f"Hi {lead.nome or ''},",

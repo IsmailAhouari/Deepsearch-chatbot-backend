@@ -65,7 +65,7 @@ class TestDemoConfirmationItalian:
             svc = MagicMock(spec=EmailService)
             svc._build_confirmation = EmailService._build_confirmation.__get__(svc)
             svc._resolve_booking_url = MagicMock(return_value=None)
-            subject, _ = svc._build_confirmation(lead, "demo")
+            subject, *_ = svc._build_confirmation(lead, "demo")
 
         assert "ricevuta" in subject.lower()
 
@@ -109,7 +109,7 @@ class TestDemoConfirmationEnglish:
             svc = MagicMock(spec=EmailService)
             svc._build_confirmation = EmailService._build_confirmation.__get__(svc)
             svc._resolve_booking_url = MagicMock(return_value=None)
-            subject, _ = svc._build_confirmation(lead, "demo")
+            subject, *_ = svc._build_confirmation(lead, "demo")
 
         assert "received" in subject.lower()
 

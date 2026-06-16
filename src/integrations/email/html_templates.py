@@ -52,7 +52,7 @@ def render_operator_html(lead: object, request_type: str, type_label: str) -> st
     raw_flow = extra.get("source_flow")
     context = {
         "data_ora": _format_received_at(lead),
-        "source_flow": _SOURCE_FLOW_LABELS.get(raw_flow, raw_flow) if raw_flow else None,
+        "source_flow": raw_flow,
         "request_type_label": type_label,
         "nome": lead.nome,
         "azienda": lead.azienda,
