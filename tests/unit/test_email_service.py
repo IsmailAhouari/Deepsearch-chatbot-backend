@@ -83,6 +83,23 @@ class TestOperatorNotification:
         payload = call_kwargs["json"]
         assert "team@deepsearch.ch" in payload["to"]
 
+    def test_notification_sends_to_multiple_recipients(self):
+        """Operator Notification splits and sends to multiple comma-separated emails."""
+        service = _make_service(notification_email="team1@deepsearch.ch, team2@deepsearch.ch ")
+        lead = _make_lead()
+
+        with patch("src.integrations.email.service.httpx") as mock_httpx:
+            mock_response = MagicMock()
+            mock_response.raise_for_status.return_value = None
+            mock_httpx.post.return_value = mock_response
+
+            service.send_operator_notification(lead, "demo")
+
+        mock_httpx.post.assert_called_once()
+        call_kwargs = mock_httpx.post.call_args.kwargs
+        payload = call_kwargs["json"]
+        assert payload["to"] == ["team1@deepsearch.ch", "team2@deepsearch.ch"]
+
     def test_notification_skips_when_api_key_absent(self, capfd):
         """No HTTP call is made when RESEND_API_KEY is not configured."""
         from src.integrations.email.service import EmailService

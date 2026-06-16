@@ -182,9 +182,10 @@ class EmailService:
         Sleeps _RETRY_DELAYS[i] seconds BETWEEN attempts only — no sleep follows
         the final failed attempt before the exception is raised.
         """
+        recipients = [email.strip() for email in to.split(",") if email.strip()]
         payload: dict = {
             "from": self._from_address,
-            "to": [to],
+            "to": recipients,
             "subject": subject,
             "text": text,
         }
