@@ -26,6 +26,18 @@ _env = Environment(
 )
 
 
+_SOURCE_FLOW_LABELS: dict[str, str] = {
+    "platform_overview":    "Panoramica piattaforma",
+    "use_cases":            "Casi d'uso",
+    "personas":             "A chi si rivolge",
+    "demo_request":         "Richiedi demo",
+    "contact_team":         "Contatta il team",
+    "commercial_info":      "Informazioni commerciali",
+    "custom_request":       "Altro",
+    "direct_qualification": "Qualificazione diretta",
+}
+
+
 def _format_received_at(lead: object) -> str:
     """Format the Lead's created_at for display; empty string if unavailable."""
     created = getattr(lead, "created_at", None)
@@ -37,9 +49,10 @@ def _format_received_at(lead: object) -> str:
 def render_operator_html(lead: object, request_type: str, type_label: str) -> str:
     """Render the Operator Notification HTML body."""
     extra = getattr(lead, "extra_qualification", None) or {}
+    raw_flow = extra.get("source_flow")
     context = {
         "data_ora": _format_received_at(lead),
-        "source_flow": extra.get("source_flow"),
+        "source_flow": _SOURCE_FLOW_LABELS.get(raw_flow, raw_flow) if raw_flow else None,
         "request_type_label": type_label,
         "nome": lead.nome,
         "azienda": lead.azienda,
