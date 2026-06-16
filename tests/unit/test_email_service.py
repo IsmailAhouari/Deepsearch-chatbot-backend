@@ -826,3 +826,82 @@ class TestLeadConfirmationMultipart:
         html = payload.get("html", "")
         assert "<!DOCTYPE html" in html
         assert "Marco Bello" in html
+
+
+class TestLeadConfirmationLocale:
+    """Lead Confirmation HTML language follows lead.locale."""
+
+    def setup_method(self):
+        from src.core.config import get_settings
+        get_settings.cache_clear()
+
+    def teardown_method(self):
+        from src.core.config import get_settings
+        get_settings.cache_clear()
+
+    def test_italian_locale_sends_italian_html(self):
+        service = _make_service()
+        lead = _make_lead(nome="Giulia Bianchi")
+        lead.locale = "it"
+
+        with patch("src.integrations.email.service.httpx") as mock_httpx:
+            mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
+            service.send_lead_confirmation(lead, "contact")
+
+        html = mock_httpx.post.call_args.kwargs["json"].get("html", "")
+        assert "lang=\"it\"" in html
+        assert "Richiesta ricevuta" in html
+
+    def test_english_locale_sends_english_html(self):
+        service = _make_service()
+        lead = _make_lead(nome="John Smith")
+        lead.locale = "en"
+
+        with patch("src.integrations.email.service.httpx") as mock_httpx:
+            mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
+            service.send_lead_confirmation(lead, "contact")
+
+        html = mock_httpx.post.call_args.kwargs["json"].get("html", "")
+        assert "lang=\"en\"" in html
+        assert "Request received" in html
+
+    def test_english_locale_plain_text_is_english(self):
+        service = _make_service()
+        lead = _make_lead(nome="John Smith")
+        lead.locale = "en"
+
+        with patch("src.integrations.email.service.httpx") as mock_httpx:
+            mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
+            service.send_lead_confirmation(lead, "contact")
+
+        text = mock_httpx.post.call_args.kwargs["json"].get("text", "")
+        assert "Thank you" in text
+        assert "Grazie" not in text
+
+    def test_missing_locale_defaults_to_italian(self):
+        service = _make_service()
+        lead = _make_lead()
+        lead.locale = None
+
+        with patch("src.integrations.email.service.httpx") as mock_httpx:
+            mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
+            service.send_lead_confirmation(lead, "contact")
+
+        html = mock_httpx.post.call_args.kwargs["json"].get("html", "")
+        assert "lang=\"it\"" in html
+
+    def test_english_demo_plain_text_includes_book_slot_phrase(self):
+        service = _make_service()
+        lead = _make_lead()
+        lead.locale = "en"
+        booking_url = "https://cal.eu/deepsearch/demo"
+
+        with patch("src.integrations.email.service.httpx") as mock_httpx, \
+             patch("src.integrations.email.service.generate_booking_link",
+                   return_value=MagicMock(booking_url=booking_url)):
+            mock_httpx.post.return_value = MagicMock(raise_for_status=MagicMock())
+            service.send_lead_confirmation(lead, "demo")
+
+        text = mock_httpx.post.call_args.kwargs["json"].get("text", "")
+        assert booking_url in text
+        assert "book" in text.lower()

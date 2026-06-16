@@ -127,18 +127,23 @@ class EmailService:
             )
 
     def _build_confirmation(self, lead: object, request_type: str) -> tuple[str, str, str]:
+        lang = (getattr(lead, "locale", None) or "it")[:2]
         if request_type == "demo":
             booking_url = self._resolve_booking_url(lead)
             return (
-                "La tua richiesta di demo è stata ricevuta — DeepSearch",
-                _build_demo_confirmation_body(lead, booking_url),
-                render_client_html(lead, request_type, booking_url),
+                "Your demo request has been received — DeepSearch"
+                if lang == "en"
+                else "La tua richiesta di demo è stata ricevuta — DeepSearch",
+                _build_demo_confirmation_body(lead, booking_url, lang=lang),
+                render_client_html(lead, request_type, booking_url, lang=lang),
             )
         # Issues 004 handles distinct contact/generic copy
         return (
-            "La tua richiesta è stata ricevuta — DeepSearch",
-            _build_plain_confirmation_body(lead),
-            render_client_html(lead, request_type, None),
+            "Your request has been received — DeepSearch"
+            if lang == "en"
+            else "La tua richiesta è stata ricevuta — DeepSearch",
+            _build_plain_confirmation_body(lead, lang=lang),
+            render_client_html(lead, request_type, None, lang=lang),
         )
 
     def _resolve_booking_url(self, lead: object) -> str | None:
@@ -193,42 +198,71 @@ class EmailService:
         raise last_exc  # type: ignore[misc]
 
 
-def _build_demo_confirmation_body(lead: object, booking_url: str | None) -> str:
+def _build_demo_confirmation_body(lead: object, booking_url: str | None, lang: str = "it") -> str:
     """Plain-text Lead Confirmation for a Demo Request."""
-    lines = [
-        f"Ciao {lead.nome or ''},",
-        "",
-        "Grazie per aver richiesto una demo di DeepSearch.",
-        "La tua richiesta è stata ricevuta. Un referente ti contatterà entro 24 ore lavorative.",
-        "",
-    ]
-    if booking_url:
-        lines += [
-            "Puoi prenotare direttamente un momento nel calendario del nostro team:",
-            booking_url,
+    if lang == "en":
+        lines = [
+            f"Hi {lead.nome or ''},",
+            "",
+            "Thank you for requesting a DeepSearch demo.",
+            "Your request has been received. A member of our team will contact you within 1 business day.",
             "",
         ]
+        if booking_url:
+            lines += [
+                "You can book a slot directly in our team's calendar:",
+                booking_url,
+                "",
+            ]
+        else:
+            lines += [
+                "Our team will be in touch shortly to arrange a meeting.",
+                "",
+            ]
+        lines += ["— The DeepSearch Team"]
     else:
-        lines += [
-            "Il nostro team ti contatterà a breve per concordare un appuntamento.",
+        lines = [
+            f"Ciao {lead.nome or ''},",
+            "",
+            "Grazie per aver richiesto una demo di DeepSearch.",
+            "La tua richiesta è stata ricevuta. Un referente ti contatterà entro 24 ore lavorative.",
             "",
         ]
-    lines += [
-        "— Il team DeepSearch",
-    ]
+        if booking_url:
+            lines += [
+                "Puoi prenotare direttamente un momento nel calendario del nostro team:",
+                booking_url,
+                "",
+            ]
+        else:
+            lines += [
+                "Il nostro team ti contatterà a breve per concordare un appuntamento.",
+                "",
+            ]
+        lines += ["— Il team DeepSearch"]
     return "\n".join(lines)
 
 
-def _build_plain_confirmation_body(lead: object) -> str:
+def _build_plain_confirmation_body(lead: object, lang: str = "it") -> str:
     """Plain-text Lead Confirmation for Contact and Generic Requests."""
-    lines = [
-        f"Ciao {lead.nome or ''},",
-        "",
-        "Grazie per averci contattato.",
-        "La tua richiesta è stata ricevuta. Un referente ti risponderà entro 24 ore lavorative.",
-        "",
-        "— Il team DeepSearch",
-    ]
+    if lang == "en":
+        lines = [
+            f"Hi {lead.nome or ''},",
+            "",
+            "Thank you for getting in touch.",
+            "Your request has been received. A member of our team will reply within 1 business day.",
+            "",
+            "— The DeepSearch Team",
+        ]
+    else:
+        lines = [
+            f"Ciao {lead.nome or ''},",
+            "",
+            "Grazie per averci contattato.",
+            "La tua richiesta è stata ricevuta. Un referente ti risponderà entro 24 ore lavorative.",
+            "",
+            "— Il team DeepSearch",
+        ]
     return "\n".join(lines)
 
 
