@@ -54,12 +54,18 @@ class TestOperatorHtml:
 
     def test_renders_qualification_fields(self):
         html = render_operator_html(make_lead(), "demo", "Demo Request")
-        assert "due_diligence" in html      # obiettivo / intent
-        assert "commercial" in html         # request_nature
-        assert "compliance_aml" in html     # func_role
-        assert "Svizzera" in html           # geo_area
-        assert "immediate_project" in html  # need_type
-        assert "aziende" in html            # subject_type
+        assert "Due Diligence" in html          # obiettivo resolved
+        assert "Commerciale" in html            # request_nature resolved
+        assert "Compliance / AML" in html       # func_role resolved
+        assert "Svizzera" in html               # geo_area (free text, unchanged)
+        assert "Progetto immediato" in html     # need_type resolved
+        assert "Aziende" in html                # subject_type resolved
+
+    def test_raw_ids_not_shown_in_operator_email(self):
+        html = render_operator_html(make_lead(), "demo", "Demo Request")
+        assert "due_diligence" not in html
+        assert "compliance_aml" not in html
+        assert "immediate_project" not in html
 
     def test_renders_note_section(self):
         html = render_operator_html(make_lead(), "demo", "Demo Request")
@@ -170,3 +176,49 @@ class TestClientHtml:
     def test_unknown_lang_falls_back_to_italian(self):
         html = render_client_html(make_lead(), "demo", None, lang="fr")
         assert "lang=\"it\"" in html
+
+    # ── Label resolution ─────────────────────────────────────────────────────
+
+    def test_italian_client_shows_human_readable_intent(self):
+        html = render_client_html(make_lead(), "demo", None, lang="it")
+        assert "Due Diligence" in html
+        assert "due_diligence" not in html
+
+    def test_english_client_shows_human_readable_intent(self):
+        lead = make_lead(obiettivo="corporate_investigations")
+        html = render_client_html(lead, "demo", None, lang="en")
+        assert "Corporate Investigations" in html
+        assert "corporate_investigations" not in html
+
+    def test_client_area_di_interesse_uses_request_nature_when_intent_absent(self):
+        lead = make_lead(obiettivo=None)
+        lead.extra_qualification = {"request_nature": "commercial"}
+        html = render_client_html(lead, "contact", None, lang="it")
+        assert "Commerciale" in html
+        assert "commercial" not in html
+
+    def test_english_client_area_of_interest_uses_request_nature_when_intent_absent(self):
+        lead = make_lead(obiettivo=None)
+        lead.extra_qualification = {"request_nature": "partnership"}
+        html = render_client_html(lead, "contact", None, lang="en")
+        assert "Partnership" in html
+
+
+# ── Operator layout reflow ─────────────────────────────────────────────────────
+
+class TestOperatorHtmlLayout:
+    def test_single_field_row_spans_full_width(self):
+        lead = make_lead()
+        lead.extra_qualification = {
+            "request_nature": None,
+            "need_type": None,
+            "source_flow": "use_cases",
+        }
+        lead.extra_qualification = {"source_flow": "use_cases"}
+        html = render_operator_html(lead, "demo", "Demo Request")
+        assert 'colspan="2"' in html
+
+    def test_two_field_row_uses_split_columns(self):
+        lead = make_lead()
+        html = render_operator_html(lead, "demo", "Demo Request")
+        assert 'class="col-half"' in html

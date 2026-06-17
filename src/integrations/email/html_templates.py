@@ -37,6 +37,105 @@ _SOURCE_FLOW_LABELS: dict[str, str] = {
     "direct_qualification": "Qualificazione diretta",
 }
 
+_QUALIFICATION_LABELS: dict[str, dict[str, dict[str, str]]] = {
+    "it": {
+        "target": {
+            "aziende": "Aziende",
+            "persone": "Persone",
+        },
+        "intent": {
+            "due_diligence": "Due Diligence",
+            "partner_selection": "Selezione partner affari",
+            "aml": "Analisi AML",
+            "risk_analysis": "Analisi del rischio",
+            "supplier_check": "Verifica fornitori",
+            "litigation": "Litigation intelligence",
+            "reputational_risk": "Rischio reputazionale",
+            "hiring": "Assunzione dipendente",
+            "other": "Altro",
+            "counterparty_risk": "Rischio controparti",
+            "corporate_investigations": "Indagini aziendali",
+        },
+        "role": {
+            "security_risk": "Security / Risk",
+            "legal": "Legale / Contenzioso",
+            "compliance_aml": "Compliance / AML",
+            "HR": "HR",
+            "management": "Direzione / Board",
+            "investor": "Investitore / Fondo",
+            "other": "Altro",
+            "risk_management": "Risk Management",
+            "investigations": "Investigazioni",
+        },
+        "request_nature": {
+            "commercial": "Commerciale",
+            "partnership": "Partnership",
+            "platform_demo": "Presentazione piattaforma",
+            "technical_request": "Richiesta tecnica",
+        },
+        "need_type": {
+            "immediate_project": "Progetto immediato",
+            "platform_evaluation": "Valutazione piattaforma",
+            "internal_analysis": "Analisi interna",
+            "commercial_info": "Informazioni commerciali",
+        },
+    },
+    "en": {
+        "target": {
+            "aziende": "Companies",
+            "persone": "Individuals",
+        },
+        "intent": {
+            "due_diligence": "Due Diligence",
+            "partner_selection": "Business Partner Selection",
+            "aml": "AML Analysis",
+            "risk_analysis": "Risk Analysis",
+            "supplier_check": "Supplier Verification",
+            "litigation": "Litigation Intelligence",
+            "reputational_risk": "Reputational Risk",
+            "hiring": "Employee Hiring",
+            "other": "Other",
+            "counterparty_risk": "Counterparty Risk",
+            "corporate_investigations": "Corporate Investigations",
+        },
+        "role": {
+            "security_risk": "Security / Risk",
+            "legal": "Legal / Litigation",
+            "compliance_aml": "Compliance / AML",
+            "HR": "HR",
+            "management": "Management / Board",
+            "investor": "Investor / Fund",
+            "other": "Other",
+            "risk_management": "Risk Management",
+            "investigations": "Investigations",
+        },
+        "request_nature": {
+            "commercial": "Commercial",
+            "partnership": "Partnership",
+            "platform_demo": "Platform Demo",
+            "technical_request": "Technical Request",
+        },
+        "need_type": {
+            "immediate_project": "Immediate Project",
+            "platform_evaluation": "Platform Evaluation",
+            "internal_analysis": "Internal Analysis",
+            "commercial_info": "Commercial Information",
+        },
+    },
+}
+
+
+def _resolve_qual_label(value: str | None, category: str, lang: str = "it") -> str | None:
+    """Resolve a qualification ID to a human-readable label.
+
+    Falls back to: Italian labels when lang is unknown, raw value when ID not found.
+    Returns None when value is None.
+    """
+    if value is None:
+        return None
+    lang_labels = _QUALIFICATION_LABELS.get(lang, _QUALIFICATION_LABELS["it"])
+    return lang_labels.get(category, {}).get(value, value)
+
 
 def _format_received_at(lead: object) -> str:
     """Format the Lead's created_at for display; empty string if unavailable."""
@@ -60,12 +159,12 @@ def render_operator_html(lead: object, request_type: str, type_label: str) -> st
         "telefono": lead.telefono,
         "ruolo": lead.ruolo,
         "paese": lead.paese,
-        "subject_type": lead.target,
-        "intent": lead.obiettivo,
-        "request_nature": extra.get("request_nature"),
-        "func_role": lead.role,
+        "subject_type": _resolve_qual_label(lead.target, "target"),
+        "intent": _resolve_qual_label(lead.obiettivo, "intent"),
+        "request_nature": _resolve_qual_label(extra.get("request_nature"), "request_nature"),
+        "func_role": _resolve_qual_label(lead.role, "role"),
         "geo_area": lead.geografia,
-        "need_type": extra.get("need_type"),
+        "need_type": _resolve_qual_label(extra.get("need_type"), "need_type"),
         "note": lead.note,
     }
     return _env.get_template("operator.html.j2").render(**context)
@@ -91,12 +190,13 @@ def render_client_html(
     back to Italian.
     """
     extra = getattr(lead, "extra_qualification", None) or {}
+    lang_key = lang if lang in _QUALIFICATION_LABELS else "it"
     context = {
         "request_type": request_type,
         "nome": lead.nome,
         "azienda": lead.azienda,
-        "intent": lead.obiettivo,
-        "request_nature": extra.get("request_nature"),
+        "intent": _resolve_qual_label(lead.obiettivo, "intent", lang_key),
+        "request_nature": _resolve_qual_label(extra.get("request_nature"), "request_nature", lang_key),
         "booking_url": booking_url,
     }
     template_name = _CLIENT_TEMPLATES.get(lang, "client.it.html.j2")
