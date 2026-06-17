@@ -96,15 +96,17 @@ class TestOperatorHtml:
         html = render_operator_html(make_lead(), "demo", "Richiesta Demo")
         assert "Richiesta Demo" in html
 
-    def test_source_flow_shown_as_italian_label_by_default(self):
+    def test_source_flow_shown_as_italian_label(self):
         html = render_operator_html(make_lead(), "demo", "Demo Request")
         assert "Casi d'uso" in html
         assert "use_cases" not in html
 
-    def test_source_flow_shown_as_english_label_when_lang_en(self):
-        html = render_operator_html(make_lead(), "demo", "Demo Request", lang="en")
-        assert "Use Cases" in html
-        assert "use_cases" not in html
+    def test_source_flow_always_italian_even_for_english_locale_lead(self):
+        lead = make_lead()
+        lead.locale = "en"
+        html = render_operator_html(lead, "demo", "Demo Request")
+        assert "Casi d'uso" in html
+        assert "Use Cases" not in html
 
     def test_source_flow_absent_when_missing(self):
         lead = make_lead()

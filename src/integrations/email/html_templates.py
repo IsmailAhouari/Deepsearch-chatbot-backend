@@ -192,12 +192,12 @@ def _format_received_at(lead: object) -> str:
     return ""
 
 
-def render_operator_html(lead: object, request_type: str, type_label: str, lang: str = "it") -> str:
+def render_operator_html(lead: object, request_type: str, type_label: str) -> str:
     """Render the Operator Notification HTML body."""
     extra = getattr(lead, "extra_qualification", None) or {}
     context = {
         "data_ora": _format_received_at(lead),
-        "source_flow": _resolve_source_flow_label(extra.get("source_flow"), lang),
+        "source_flow": _resolve_source_flow_label(extra.get("source_flow"), "it"),
         "request_type_label": type_label,
         "nome": lead.nome,
         "azienda": lead.azienda,
