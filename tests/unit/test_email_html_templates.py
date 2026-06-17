@@ -216,6 +216,26 @@ class TestClientHtml:
         html = render_client_html(lead, "contact", None, lang="en")
         assert "Partnership" in html
 
+    def test_sub_context_shown_in_italian_client_email(self):
+        lead = make_lead()
+        lead.extra_qualification = {**lead.extra_qualification, "sub_context": "asset_tracing"}
+        html = render_client_html(lead, "demo", None, lang="it")
+        assert "Asset tracing" in html
+        assert "asset_tracing" not in html
+
+    def test_sub_context_shown_in_english_client_email(self):
+        lead = make_lead()
+        lead.extra_qualification = {**lead.extra_qualification, "sub_context": "civil_litigation"}
+        html = render_client_html(lead, "demo", None, lang="en")
+        assert "Civil Litigation" in html
+        assert "civil_litigation" not in html
+
+    def test_sub_context_absent_from_client_email_when_not_set(self):
+        lead = make_lead()
+        html = render_client_html(lead, "demo", None, lang="en")
+        assert "Specific context" not in html
+        assert "Contesto specifico" not in html
+
 
 # ── Operator layout reflow ─────────────────────────────────────────────────────
 

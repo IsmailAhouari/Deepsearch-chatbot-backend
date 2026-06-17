@@ -220,6 +220,7 @@ def render_client_html(
         "azienda": lead.azienda,
         "intent": _resolve_qual_label(lead.obiettivo, "intent", lang_key),
         "request_nature": _resolve_qual_label(extra.get("request_nature"), "request_nature", lang_key),
+        "sub_context": _resolve_qual_label(extra.get("sub_context"), "sub_context", lang_key),
         "booking_url": booking_url,
     }
     template_name = _CLIENT_TEMPLATES.get(lang, "client.it.html.j2")

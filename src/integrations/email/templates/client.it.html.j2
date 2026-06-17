@@ -107,6 +107,18 @@
                   </td>
                 </tr>
 
+                {% if sub_context %}
+                <!-- Contesto specifico -->
+                <tr>
+                  <td colspan="2" style="padding: 14px 20px; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
+                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #9CA3AF; margin: 0 0 6px 0;">Contesto specifico</p>
+                    <span style="display: inline-block; padding: 3px 10px; border-radius: 20px; font-family: 'Inter', Arial, sans-serif; font-size: 11px; font-weight: 600; background: #D1FAE5; color: #065F46; border: 1px solid #6EE7B7;">
+                      {{ sub_context }}
+                    </span>
+                  </td>
+                </tr>
+                {% endif %}
+
               </table>
             </td>
           </tr>
