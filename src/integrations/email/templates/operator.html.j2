@@ -153,7 +153,7 @@
             </td>
           </tr>
 
-          {% if subject_type or intent or request_nature or func_role or geo_area or need_type %}
+          {% if subject_type or intent or sub_context or request_nature or func_role or geo_area or need_type %}
           <!-- Section: Qualification Profile -->
           <tr>
             <td style="padding: 8px 32px 0 32px;">
@@ -190,6 +190,16 @@
                     <span class="badge badge-blue">{{ intent }}</span>
                   </td>
                   {% endif %}
+                </tr>
+                {% endif %}
+
+                {% if sub_context %}
+                <!-- Row: Contesto specifico -->
+                <tr>
+                  <td colspan="2" style="padding: 16px 20px; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
+                    <p class="ds-label" style="margin: 0 0 6px 0;">Contesto specifico</p>
+                    <span class="badge badge-green">{{ sub_context }}</span>
+                  </td>
                 </tr>
                 {% endif %}
 

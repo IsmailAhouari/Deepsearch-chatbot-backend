@@ -79,6 +79,17 @@ _QUALIFICATION_LABELS: dict[str, dict[str, dict[str, str]]] = {
             "internal_analysis": "Analisi interna",
             "commercial_info": "Informazioni commerciali",
         },
+        "sub_context": {
+            "supplier": "Fornitore",
+            "client": "Cliente",
+            "partner": "Partner",
+            "investment_target": "Target di investimento",
+            "civil_litigation": "Contenzioso civile",
+            "commercial_dispute": "Disputa commerciale",
+            "asset_tracing": "Asset tracing",
+            "pre_litigation": "Pre-contenzioso",
+            "other": "Altro",
+        },
     },
     "en": {
         "target": {
@@ -120,6 +131,17 @@ _QUALIFICATION_LABELS: dict[str, dict[str, dict[str, str]]] = {
             "platform_evaluation": "Platform Evaluation",
             "internal_analysis": "Internal Analysis",
             "commercial_info": "Commercial Information",
+        },
+        "sub_context": {
+            "supplier": "Supplier",
+            "client": "Client",
+            "partner": "Partner",
+            "investment_target": "Investment Target",
+            "civil_litigation": "Civil Litigation",
+            "commercial_dispute": "Commercial Dispute",
+            "asset_tracing": "Asset Tracing",
+            "pre_litigation": "Pre-Litigation",
+            "other": "Other",
         },
     },
 }
@@ -165,6 +187,7 @@ def render_operator_html(lead: object, request_type: str, type_label: str) -> st
         "func_role": _resolve_qual_label(lead.role, "role"),
         "geo_area": lead.geografia,
         "need_type": _resolve_qual_label(extra.get("need_type"), "need_type"),
+        "sub_context": _resolve_qual_label(extra.get("sub_context"), "sub_context"),
         "note": lead.note,
     }
     return _env.get_template("operator.html.j2").render(**context)

@@ -106,6 +106,19 @@ class TestOperatorHtml:
         html = render_operator_html(lead, "demo", "Demo Request")
         assert "Flusso" not in html
 
+    def test_sub_context_shown_when_set(self):
+        lead = make_lead()
+        lead.extra_qualification = {**lead.extra_qualification, "sub_context": "asset_tracing"}
+        html = render_operator_html(lead, "demo", "Demo Request")
+        assert "Asset tracing" in html
+        assert "Contesto specifico" in html
+        assert "asset_tracing" not in html
+
+    def test_sub_context_absent_when_not_set(self):
+        lead = make_lead()
+        html = render_operator_html(lead, "demo", "Demo Request")
+        assert "Contesto specifico" not in html
+
 
 # ── Client HTML ───────────────────────────────────────────────────────────────
 
