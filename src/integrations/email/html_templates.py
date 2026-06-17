@@ -17,6 +17,7 @@ from datetime import datetime
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from markupsafe import Markup
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
 
@@ -26,15 +27,27 @@ _env = Environment(
 )
 
 
-_SOURCE_FLOW_LABELS: dict[str, str] = {
-    "platform_overview":    "Panoramica piattaforma",
-    "use_cases":            "Casi d'uso",
-    "personas":             "A chi si rivolge",
-    "demo_request":         "Richiedi demo",
-    "contact_team":         "Contatta il team",
-    "commercial_info":      "Informazioni commerciali",
-    "custom_request":       "Altro",
-    "direct_qualification": "Qualificazione diretta",
+_SOURCE_FLOW_LABELS: dict[str, dict[str, str]] = {
+    "it": {
+        "platform_overview":    "Panoramica piattaforma",
+        "use_cases":            "Casi d'uso",
+        "personas":             "A chi si rivolge",
+        "demo_request":         "Richiedi demo",
+        "contact_team":         "Contatta il team",
+        "commercial_info":      "Informazioni commerciali",
+        "custom_request":       "Altro",
+        "direct_qualification": "Qualificazione diretta",
+    },
+    "en": {
+        "platform_overview":    "Platform Overview",
+        "use_cases":            "Use Cases",
+        "personas":             "Who It's For",
+        "demo_request":         "Request a Demo",
+        "contact_team":         "Contact the Team",
+        "commercial_info":      "Commercial Information",
+        "custom_request":       "Other",
+        "direct_qualification": "Direct Qualification",
+    },
 }
 
 _QUALIFICATION_LABELS: dict[str, dict[str, dict[str, str]]] = {
@@ -147,6 +160,18 @@ _QUALIFICATION_LABELS: dict[str, dict[str, dict[str, str]]] = {
 }
 
 
+def _resolve_source_flow_label(raw_flow: str | None, lang: str = "it") -> "Markup | None":
+    """Resolve a source_flow ID to the UI-facing label in the given language.
+
+    Returns a Markup-safe string so Jinja2 autoescape does not mangle
+    typographic characters (e.g. the apostrophe in "Casi d'uso").
+    """
+    if raw_flow is None:
+        return None
+    lang_map = _SOURCE_FLOW_LABELS.get(lang, _SOURCE_FLOW_LABELS["it"])
+    return Markup(lang_map.get(raw_flow, raw_flow))
+
+
 def _resolve_qual_label(value: str | None, category: str, lang: str = "it") -> str | None:
     """Resolve a qualification ID to a human-readable label.
 
@@ -167,13 +192,12 @@ def _format_received_at(lead: object) -> str:
     return ""
 
 
-def render_operator_html(lead: object, request_type: str, type_label: str) -> str:
+def render_operator_html(lead: object, request_type: str, type_label: str, lang: str = "it") -> str:
     """Render the Operator Notification HTML body."""
     extra = getattr(lead, "extra_qualification", None) or {}
-    raw_flow = extra.get("source_flow")
     context = {
         "data_ora": _format_received_at(lead),
-        "source_flow": raw_flow,
+        "source_flow": _resolve_source_flow_label(extra.get("source_flow"), lang),
         "request_type_label": type_label,
         "nome": lead.nome,
         "azienda": lead.azienda,

@@ -81,7 +81,8 @@ class EmailService:
             type_label = _REQUEST_TYPE_LABELS.get(request_type, request_type)
             subject = f"DeepSearch - {type_label}"
             body = _build_operator_body(lead, request_type, type_label)
-            html = render_operator_html(lead, request_type, type_label)
+            lang = (getattr(lead, "locale", None) or "it")[:2]
+            html = render_operator_html(lead, request_type, type_label, lang=lang)
             self._send(
                 to=self._notification_email,
                 subject=subject,
