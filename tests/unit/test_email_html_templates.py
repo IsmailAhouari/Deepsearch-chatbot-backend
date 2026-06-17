@@ -81,10 +81,10 @@ class TestOperatorHtml:
         html = render_operator_html(lead, "demo", "Demo Request")
         assert "Non fornito" in html
 
-    def test_shows_dash_when_ruolo_missing(self):
-        lead = make_lead(ruolo=None)
-        html = render_operator_html(lead, "demo", "Demo Request")
-        assert "Non specificato" in html
+    def test_func_role_label_is_ruolo_professionale(self):
+        html = render_operator_html(make_lead(), "demo", "Demo Request")
+        assert "Ruolo professionale" in html
+        assert "Funzione" not in html
 
     def test_qualification_section_hidden_when_all_fields_absent(self):
         lead = make_lead(obiettivo=None, role=None, target=None, geografia=None)

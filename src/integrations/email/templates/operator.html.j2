@@ -113,13 +113,13 @@
 
                 <!-- Row 2: Email + Telefono -->
                 <tr>
-                  <td class="col-half" width="50%" style="padding: 16px 20px; border-right: 1px solid #E2E6EF; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
+                  <td class="col-half" width="50%" style="padding: 16px 20px; border-right: 1px solid #E2E6EF; vertical-align: top;">
                     <p class="ds-label" style="margin: 0 0 4px 0;">Email</p>
                     <p style="margin: 0;">
                       <a href="mailto:{{ email }}" style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #1D4ED8; text-decoration: none;">{{ email }}</a>
                     </p>
                   </td>
-                  <td class="col-half" width="50%" style="padding: 16px 20px; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
+                  <td class="col-half" width="50%" style="padding: 16px 20px; vertical-align: top;">
                     <p class="ds-label" style="margin: 0 0 4px 0;">Telefono</p>
                     {% if telefono %}
                     <p class="ds-value" style="margin: 0;">{{ telefono }}</p>
@@ -128,26 +128,6 @@
                     {% endif %}
                   </td>
                 </tr>
-
-                {% if ruolo or paese %}
-                <!-- Row 3: Ruolo + Paese -->
-                <tr>
-                  <td class="col-half" width="50%" style="padding: 16px 20px; border-right: 1px solid #E2E6EF; vertical-align: top;">
-                    <p class="ds-label" style="margin: 0 0 4px 0;">Ruolo professionale</p>
-                    {% if ruolo %}
-                    <p class="ds-value" style="margin: 0;">{{ ruolo }}</p>
-                    {% else %}
-                    <p class="ds-value-missing" style="margin: 0;">Non specificato</p>
-                    {% endif %}
-                  </td>
-                  <td class="col-half" width="50%" style="padding: 16px 20px; vertical-align: top;">
-                    {% if paese %}
-                    <p class="ds-label" style="margin: 0 0 4px 0;">Paese</p>
-                    <p class="ds-value" style="margin: 0;">{{ paese }}</p>
-                    {% endif %}
-                  </td>
-                </tr>
-                {% endif %}
 
               </table>
             </td>
@@ -204,7 +184,7 @@
                 {% endif %}
 
                 {% if request_nature or func_role %}
-                <!-- Row: Natura richiesta + Funzione -->
+                <!-- Row: Natura richiesta + Ruolo professionale -->
                 <tr>
                   {% if request_nature and func_role %}
                   <td class="col-half" width="50%" style="padding: 16px 20px; border-right: 1px solid #E2E6EF; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
@@ -212,7 +192,7 @@
                     <span class="badge badge-blue">{{ request_nature }}</span>
                   </td>
                   <td class="col-half" width="50%" style="padding: 16px 20px; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
-                    <p class="ds-label" style="margin: 0 0 6px 0;">Funzione</p>
+                    <p class="ds-label" style="margin: 0 0 6px 0;">Ruolo professionale</p>
                     <span class="badge badge-purple">{{ func_role }}</span>
                   </td>
                   {% elif request_nature %}
@@ -222,7 +202,7 @@
                   </td>
                   {% else %}
                   <td colspan="2" style="padding: 16px 20px; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
-                    <p class="ds-label" style="margin: 0 0 6px 0;">Funzione</p>
+                    <p class="ds-label" style="margin: 0 0 6px 0;">Ruolo professionale</p>
                     <span class="badge badge-purple">{{ func_role }}</span>
                   </td>
                   {% endif %}
