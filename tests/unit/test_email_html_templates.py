@@ -80,12 +80,11 @@ class TestOperatorHtml:
         html = render_operator_html(lead, "demo", "Demo Request")
         assert "Non specificato" in html
 
-    def test_shows_dash_when_qualification_fields_absent(self):
+    def test_qualification_section_hidden_when_all_fields_absent(self):
         lead = make_lead(obiettivo=None, role=None, target=None, geografia=None)
         lead.extra_qualification = {}
         html = render_operator_html(lead, "demo", "Demo Request")
-        # All optional qualification cells should show the em-dash placeholder
-        assert html.count("—") >= 4
+        assert "Profilo di Qualificazione" not in html
 
     def test_request_type_label_in_badge(self):
         html = render_operator_html(make_lead(), "demo", "Richiesta Demo")

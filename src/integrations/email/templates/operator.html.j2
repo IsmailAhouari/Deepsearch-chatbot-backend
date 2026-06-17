@@ -153,6 +153,7 @@
             </td>
           </tr>
 
+          {% if subject_type or intent or request_nature or func_role or geo_area or need_type %}
           <!-- Section: Qualification Profile -->
           <tr>
             <td style="padding: 8px 32px 0 32px;">
@@ -166,45 +167,64 @@
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
                      style="background: #F8F9FC; border: 1px solid #E2E6EF; border-radius: 10px; overflow: hidden;">
 
+                {% if subject_type or intent %}
                 <!-- Row: Tipo soggetto + Obiettivo -->
                 <tr>
                   <td class="col-half" width="50%" style="padding: 16px 20px; border-right: 1px solid #E2E6EF; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
+                    {% if subject_type %}
                     <p class="ds-label" style="margin: 0 0 6px 0;">Tipo soggetto</p>
-                    {% if subject_type %}<span class="badge badge-purple">{{ subject_type }}</span>{% else %}<span class="ds-value-missing">—</span>{% endif %}
+                    <span class="badge badge-purple">{{ subject_type }}</span>
+                    {% endif %}
                   </td>
                   <td class="col-half" width="50%" style="padding: 16px 20px; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
+                    {% if intent %}
                     <p class="ds-label" style="margin: 0 0 6px 0;">Obiettivo primario</p>
-                    {% if intent %}<span class="badge badge-blue">{{ intent }}</span>{% else %}<span class="ds-value-missing">—</span>{% endif %}
+                    <span class="badge badge-blue">{{ intent }}</span>
+                    {% endif %}
                   </td>
                 </tr>
+                {% endif %}
 
+                {% if request_nature or func_role %}
                 <!-- Row: Natura richiesta + Funzione -->
                 <tr>
                   <td class="col-half" width="50%" style="padding: 16px 20px; border-right: 1px solid #E2E6EF; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
+                    {% if request_nature %}
                     <p class="ds-label" style="margin: 0 0 6px 0;">Natura della richiesta</p>
-                    {% if request_nature %}<span class="badge badge-blue">{{ request_nature }}</span>{% else %}<span class="ds-value-missing">—</span>{% endif %}
+                    <span class="badge badge-blue">{{ request_nature }}</span>
+                    {% endif %}
                   </td>
                   <td class="col-half" width="50%" style="padding: 16px 20px; border-bottom: 1px solid #E2E6EF; vertical-align: top;">
+                    {% if func_role %}
                     <p class="ds-label" style="margin: 0 0 6px 0;">Funzione</p>
-                    {% if func_role %}<span class="badge badge-purple">{{ func_role }}</span>{% else %}<span class="ds-value-missing">—</span>{% endif %}
+                    <span class="badge badge-purple">{{ func_role }}</span>
+                    {% endif %}
                   </td>
                 </tr>
+                {% endif %}
 
+                {% if geo_area or need_type %}
                 <!-- Row: Area geografica + Tipo esigenza -->
                 <tr>
                   <td class="col-half" width="50%" style="padding: 16px 20px; border-right: 1px solid #E2E6EF; vertical-align: top;">
+                    {% if geo_area %}
                     <p class="ds-label" style="margin: 0 0 4px 0;">Area geografica</p>
-                    {% if geo_area %}<p class="ds-value" style="margin: 0;">{{ geo_area }}</p>{% else %}<span class="ds-value-missing">—</span>{% endif %}
+                    <p class="ds-value" style="margin: 0;">{{ geo_area }}</p>
+                    {% endif %}
                   </td>
                   <td class="col-half" width="50%" style="padding: 16px 20px; vertical-align: top;">
+                    {% if need_type %}
                     <p class="ds-label" style="margin: 0 0 6px 0;">Tipo esigenza</p>
-                    {% if need_type %}<span class="badge badge-amber">{{ need_type }}</span>{% else %}<span class="ds-value-missing">—</span>{% endif %}
+                    <span class="badge badge-amber">{{ need_type }}</span>
+                    {% endif %}
                   </td>
                 </tr>
+                {% endif %}
 
               </table>
             </td>
           </tr>
+          {% endif %}
 
           {% if note %}
           <!-- Section: Note / Custom Request -->
