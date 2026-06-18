@@ -70,6 +70,14 @@ class TestOperatorHtml:
     def test_renders_note_section(self):
         html = render_operator_html(make_lead(), "demo", "Demo Request")
         assert "Interessati a una valutazione su 3 controparti." in html
+        assert "Note / Richiesta" in html
+
+    def test_note_label_is_richiesta_for_altro_flow(self):
+        lead = make_lead()
+        lead.extra_qualification = {**lead.extra_qualification, "source_flow": "custom_request"}
+        html = render_operator_html(lead, "generic_request", "Richiesta Generica")
+        assert "Richiesta" in html
+        assert "Note / Richiesta" not in html
 
     def test_omits_note_section_when_absent(self):
         lead = make_lead(note=None)
